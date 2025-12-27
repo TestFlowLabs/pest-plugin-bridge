@@ -88,7 +88,7 @@ final class Configuration
     {
         $value = $_ENV[$name] ?? getenv($name);
 
-        if ($value === false || $value === '') {
+        if ($value === false || $value === '' || ! is_string($value)) {
             return null;
         }
 

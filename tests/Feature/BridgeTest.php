@@ -11,7 +11,6 @@ use TestFlowLabs\PestPluginBridge\Configuration;
  * by the BridgeTrait when visiting external frontend applications.
  * No actual browser is required for these tests.
  */
-
 beforeEach(function (): void {
     Configuration::reset();
     Configuration::setExternalUrl('http://localhost:5173');

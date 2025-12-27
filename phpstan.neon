@@ -7,5 +7,9 @@ parameters:
         - src
     tmpDir: .phpstan.cache
     ignoreErrors:
+        # BridgeTrait is used at runtime via Plugin::uses() in Autoload.php
+        - identifier: trait.unused
         # BridgeTrait's visit() method comes from pest-plugin-browser at runtime
-        - '#Call to an undefined method .+::visit\(\)#'
+        -
+            message: '#Call to an undefined method .+::visit\(\)#'
+            reportUnmatched: false
