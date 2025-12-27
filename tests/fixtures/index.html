@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test App</title>
+    <style>
+        body { font-family: system-ui, sans-serif; padding: 2rem; }
+        .container { max-width: 600px; margin: 0 auto; }
+        h1 { color: #333; }
+        .login-form { margin-top: 2rem; }
+        .login-form input { display: block; margin: 0.5rem 0; padding: 0.5rem; width: 100%; box-sizing: border-box; }
+        .login-form button { margin-top: 1rem; padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; cursor: pointer; }
+        .message { margin-top: 1rem; padding: 1rem; background: #d1fae5; border-radius: 4px; display: none; }
+        .message.show { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 data-testid="title">Welcome to Test App</h1>
+        <p data-testid="description">This is a simple test application.</p>
+
+        <div class="login-form">
+            <h2>Login</h2>
+            <input type="email" id="email" data-testid="email" placeholder="Email">
+            <input type="password" id="password" data-testid="password" placeholder="Password">
+            <button type="button" data-testid="login-button" onclick="handleLogin()">Login</button>
+            <div id="message" class="message" data-testid="message"></div>
+        </div>
+    </div>
+
+    <script>
+        function handleLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const message = document.getElementById('message');
+
+            if (email && password) {
+                message.textContent = 'Login successful! Welcome, ' + email;
+                message.classList.add('show');
+            } else {
+                message.textContent = 'Please fill in all fields';
+                message.classList.add('show');
+            }
+        }
+    </script>
+</body>
+</html>
