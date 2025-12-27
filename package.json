@@ -1,0 +1,26 @@
+{
+  "name": "pest-plugin-bridge",
+  "version": "1.0.0",
+  "description": "[![Tests](https://github.com/TestFlowLabs/pest-plugin-bridge/actions/workflows/tests.yml/badge.svg)](https://github.com/TestFlowLabs/pest-plugin-bridge/actions) [![License](https://img.shields.io/github/license/TestFlowLabs/pest-plugin-bridge)](LICENSE)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TestFlowLabs/pest-plugin-bridge.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TestFlowLabs/pest-plugin-bridge/issues"
+  },
+  "homepage": "https://github.com/TestFlowLabs/pest-plugin-bridge#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}
