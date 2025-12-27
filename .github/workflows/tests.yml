@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        php: ['8.2', '8.3', '8.4']
+        php: ['8.3', '8.4']
 
     name: PHP ${{ matrix.php }}
 
@@ -28,6 +28,17 @@ jobs:
           extensions: dom, curl, libxml, mbstring, zip
           coverage: none
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Cache Composer dependencies
         uses: actions/cache@v4
         with:
@@ -35,7 +46,7 @@ jobs:
           key: composer-${{ matrix.php }}-${{ hashFiles('composer.json') }}
           restore-keys: composer-${{ matrix.php }}-
 
-      - name: Install dependencies
+      - name: Install Composer dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
       - name: Run Lint
@@ -44,5 +55,8 @@ jobs:
       - name: Run Type Checks
         run: ./vendor/bin/phpstan analyse
 
-      - name: Run Tests
-        run: ./vendor/bin/pest
+      - name: Run Unit and Feature Tests
+        run: ./vendor/bin/pest tests/Unit tests/Feature
+
+      - name: Run Browser Tests
+        run: ./vendor/bin/pest tests/Browser

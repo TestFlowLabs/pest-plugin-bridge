@@ -101,7 +101,7 @@ afterAll(function () use (&$serverPid): void {
 test('can visit external page and see content', function (): void {
     $this->visitExternal('/index.html')
         ->assertSee('Welcome to Test App');
-});
+})->group('browser');
 
 test('can interact with form elements', function (): void {
     $this->visitExternal('/index.html')
@@ -109,21 +109,21 @@ test('can interact with form elements', function (): void {
         ->fill('[data-testid="password"]', 'secret123')
         ->click('[data-testid="login-button"]')
         ->assertSee('Login successful');
-});
+})->group('browser');
 
 test('can verify page title', function (): void {
     $this->visitExternal('/index.html')
         ->assertTitle('Test App');
-});
+})->group('browser');
 
 test('can verify elements with data-testid', function (): void {
     $this->visitExternal('/index.html')
         ->assertSeeIn('[data-testid="title"]', 'Welcome to Test App')
         ->assertSeeIn('[data-testid="description"]', 'This is a simple test application');
-});
+})->group('browser');
 
 test('shows error message when fields are empty', function (): void {
     $this->visitExternal('/index.html')
         ->click('[data-testid="login-button"]')
         ->assertSee('Please fill in all fields');
-});
+})->group('browser');
