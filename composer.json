@@ -1,0 +1,60 @@
+{
+    "name": "testflowlabs/pest-plugin-bridge",
+    "description": "Pest plugin for browser testing external frontend applications",
+    "keywords": [
+        "pest",
+        "plugin",
+        "browser",
+        "testing",
+        "external",
+        "frontend",
+        "e2e"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "TestFlowLabs"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin": "^3.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.18",
+        "phpstan/phpstan": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TestFlowLabs\\PestPluginBridge\\": "src/"
+        },
+        "files": [
+            "src/Autoload.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TestFlowLabs\\PestPluginBridge\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "scripts": {
+        "lint": "pint",
+        "test:lint": "pint --test",
+        "test:types": "phpstan analyse",
+        "test:unit": "pest",
+        "test": [
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ]
+    }
+}
