@@ -1,0 +1,11 @@
+includes:
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+
+parameters:
+    level: max
+    paths:
+        - src
+    tmpDir: .phpstan.cache
+    ignoreErrors:
+        # BridgeTrait's visit() method comes from pest-plugin-browser at runtime
+        - '#Call to an undefined method .+::visit\(\)#'
