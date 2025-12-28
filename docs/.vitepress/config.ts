@@ -4,6 +4,14 @@ export default defineConfig({
   title: 'Pest Plugin Bridge',
   description: 'Browser testing for external frontend applications with Pest PHP',
 
+  markdown: {
+    theme: {
+      light: 'github-light',
+      dark: 'github-dark'
+    },
+    lineNumbers: false
+  },
+
   head: [
     ['link', { rel: 'icon', type: 'image/svg+xml', href: '/logo.svg' }]
   ],

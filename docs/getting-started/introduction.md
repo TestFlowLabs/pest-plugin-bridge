@@ -55,7 +55,7 @@ $this->bridge('/shop')->assertSee('Products');
 When you use `->serve()`, the plugin automatically injects the correct API URL into your frontend:
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 
@@ -97,8 +97,8 @@ test('user can browse products', function () {
 Customer portal and admin panel are different apps:
 
 ```php
-Bridge::setDefault('http://localhost:3000');           // Customer
-Bridge::frontend('admin', 'http://localhost:3001');    // Admin
+Bridge::add('http://localhost:3000');                  // Customer (default)
+Bridge::add('http://localhost:3001', 'admin');         // Admin
 
 test('customer sees their orders', function () {
     $this->bridge('/orders')->assertSee('Your Orders');
@@ -128,9 +128,9 @@ test('new checkout works', function () {
 Multiple frontend services consuming your APIs:
 
 ```php
-Bridge::frontend('shop', 'http://localhost:3001');
-Bridge::frontend('blog', 'http://localhost:3002');
-Bridge::frontend('docs', 'http://localhost:3003');
+Bridge::add('http://localhost:3001', 'shop');
+Bridge::add('http://localhost:3002', 'blog');
+Bridge::add('http://localhost:3003', 'docs');
 ```
 
 ## How It Works
@@ -141,7 +141,7 @@ Bridge::frontend('docs', 'http://localhost:3003');
 
 ```php
 // Configuration (in tests/Pest.php)
-Bridge::setDefault('http://localhost:5173');
+Bridge::add('http://localhost:5173');
 
 // Your test
 test('homepage loads', function () {

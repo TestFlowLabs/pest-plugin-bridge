@@ -26,10 +26,10 @@ use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
 // Option A: Manual server start (you start the frontend separately)
-Bridge::setDefault('http://localhost:3000');
+Bridge::add('http://localhost:3000');
 
 // Option B: Automatic server management (recommended)
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('ready|localhost');
 

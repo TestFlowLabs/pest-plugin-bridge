@@ -78,7 +78,7 @@ In CI, cache `node_modules` to avoid reinstalling:
 If your tests don't need hot reload:
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run preview', cwd: '../frontend');  // Serves built files
 ```
 

@@ -1,6 +1,6 @@
 # Configuration
 
-Pest Plugin Bridge uses the `Bridge` class for programmatic configuration of external frontend URLs.
+Pest Plugin Bridge uses the `Bridge` class for programmatic configuration of bridged frontend URLs.
 
 ## Global Configuration
 
@@ -11,8 +11,8 @@ Configure in your `tests/Pest.php` file:
 
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-// Set the default frontend URL
-Bridge::setDefault('http://localhost:5173');
+// Add the default frontend URL
+Bridge::add('http://localhost:5173');
 ```
 
 This is the recommended approach for single-frontend projects.
@@ -29,7 +29,7 @@ use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
 // Configure frontend with automatic server management
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 
 pest()->extends(TestCase::class)->in('Browser');
@@ -51,18 +51,19 @@ pest()->extends(TestCase::class)->in('Browser');
 | `->readyWhen(string $pattern)` | Regex pattern to detect server ready (optional) |
 | `->warmup(int $milliseconds)` | Extra delay after server reports ready (for large frontends) |
 | `->env(array $vars)` | Custom environment variables with path suffixes |
+| `->child(string $path, string $name)` | Register a child frontend at a sub-path (same server) |
 
 ::: tip readyWhen() is Optional
 The default pattern (`ready|localhost|started|listening|compiled|http://|https://`) covers most frontend dev servers. Only use `readyWhen()` if your server has a unique output format.
 :::
 
-### Multiple Frontends with Auto-Start
+### Multiple Bridged Frontends with Auto-Start
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../customer-portal');
 
-Bridge::frontend('admin', 'http://localhost:3001')
+Bridge::add('http://localhost:3001', 'admin')
     ->serve('npm run dev', cwd: '../admin-panel');
 ```
 
@@ -71,7 +72,7 @@ Bridge::frontend('admin', 'http://localhost:3001')
 The plugin automatically injects the test Laravel server URL into common environment variables. For projects with custom API endpoint structures, use the `env()` method:
 
 ```php
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->env([
         // Custom API endpoints - path suffixes are appended to the test server URL
@@ -103,7 +104,7 @@ Process environment variables (injected by the plugin) take precedence over `.en
 Large frontend applications may need extra time after reporting "ready" before they can efficiently handle page loads. Use `warmup()` to add a delay:
 
 ```php
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready')
     ->warmup(3000); // Wait 3 seconds after server is ready
@@ -118,20 +119,55 @@ This is particularly useful for:
 Vite compiles JavaScript modules on-demand when the browser first requests them. The `bridge()` method already uses a 30-second timeout by default to handle this. Use `warmup()` only if you experience consistent timeouts with very large applications.
 :::
 
+### Child Frontends
+
+When a single frontend server serves multiple named sections at different paths, use `child()` to avoid URL repetition:
+
+```php
+Bridge::add('http://localhost:3001', 'admin')
+    ->child('/analytics', 'analytics')
+    ->child('/reports', 'reports')
+    ->serve('npm run dev', cwd: '../admin-frontend');
+```
+
+This registers three bridged frontends sharing the same server:
+- `admin` → `http://localhost:3001`
+- `analytics` → `http://localhost:3001/analytics`
+- `reports` → `http://localhost:3001/reports`
+
+Use them in tests:
+
+```php
+test('admin can view dashboard', function () {
+    $this->bridge('/', 'admin')
+        ->assertSee('Admin Dashboard');
+});
+
+test('analytics page shows charts', function () {
+    $this->bridge('/', 'analytics')
+        ->assertVisible('[data-testid="revenue-chart"]');
+});
+
+test('reports page shows data', function () {
+    $this->bridge('/', 'reports')
+        ->assertVisible('[data-testid="reports-table"]');
+});
+```
+
 ## URL Validation
 
 The plugin validates URLs using PHP's `filter_var()` with `FILTER_VALIDATE_URL`. Invalid URLs throw an `InvalidArgumentException`:
 
 ```php
 // Valid URLs
-Bridge::setDefault('http://localhost:5173');     // ✅
-Bridge::setDefault('https://staging.app.com');  // ✅
-Bridge::setDefault('http://192.168.1.100:3000'); // ✅
+Bridge::add('http://localhost:5173');     // ✅
+Bridge::add('https://staging.app.com');  // ✅
+Bridge::add('http://192.168.1.100:3000'); // ✅
 
 // Invalid URLs
-Bridge::setDefault('localhost:5173');           // ❌ Missing scheme
-Bridge::setDefault('not-a-url');                // ❌ Invalid format
-Bridge::setDefault('');                         // ❌ Empty string
+Bridge::add('localhost:5173');           // ❌ Missing scheme
+Bridge::add('not-a-url');                // ❌ Invalid format
+Bridge::add('');                         // ❌ Empty string
 ```
 
 ## Checking Configuration
@@ -160,9 +196,9 @@ The plugin automatically resets configuration when tests complete via a shutdown
 Bridge::reset();
 ```
 
-## Multiple Frontends
+## Multiple Bridged Frontends
 
-For projects with multiple frontends (micro-frontends, admin panels, customer portals), register named frontends:
+For projects with multiple frontends (micro-frontends, admin panels, customer portals), register named bridged frontends:
 
 ```php
 <?php
@@ -170,9 +206,9 @@ For projects with multiple frontends (micro-frontends, admin panels, customer po
 
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:3000');           // Customer portal
-Bridge::frontend('admin', 'http://localhost:3001');    // Admin dashboard
-Bridge::frontend('analytics', 'http://localhost:3002'); // Analytics panel
+Bridge::add('http://localhost:3000');                  // Customer portal (default)
+Bridge::add('http://localhost:3001', 'admin');         // Admin dashboard
+Bridge::add('http://localhost:3002', 'analytics');     // Analytics panel
 ```
 
 Then use them in your tests:
@@ -215,6 +251,6 @@ test('shows revenue metrics', function () {
 });
 ```
 
-::: tip Named Frontends
-Named frontends are registered once in `tests/Pest.php` and available in all test files. No need to repeat configuration in each file.
+::: tip Bridged Frontends
+Bridged frontends are registered once in `tests/Pest.php` and available in all test files. No need to repeat configuration in each file.
 :::

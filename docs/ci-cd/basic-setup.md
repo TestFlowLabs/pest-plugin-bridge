@@ -34,7 +34,7 @@ use Tests\TestCase;
 
 pest()->extends(TestCase::class)->in('Browser');
 
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 

@@ -14,7 +14,7 @@ Each side needs different configuration:
 
 | Component | Configuration | Purpose |
 |-----------|---------------|---------|
-| **Laravel Backend** | `Bridge::setDefault()` | Tell tests where frontend is |
+| **Laravel Backend** | `Bridge::add()` | Tell tests where frontend is |
 | **External Frontend** | `API_URL` or similar | Tell frontend where API is |
 
 ### Backend Configuration
@@ -24,7 +24,7 @@ In your `tests/Pest.php`:
 ```php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:3000');
+Bridge::add('http://localhost:3000');
 ```
 
 That's it! The backend just needs to know where to find the frontend.
@@ -165,7 +165,7 @@ With `->serve()` configuration, frontend servers start automatically on first `b
 use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 
 pest()->extends(TestCase::class)->in('Browser');
@@ -349,7 +349,7 @@ test('user can register', function () {
 ```php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:3000');
+Bridge::add('http://localhost:3000');
 ```
 
 **`phpunit.xml`** (database configuration):

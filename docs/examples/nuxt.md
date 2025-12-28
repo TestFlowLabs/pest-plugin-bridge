@@ -219,7 +219,7 @@ export const useAuth = () => {
 // tests/Pest.php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:3000');
+Bridge::add('http://localhost:3000');
 ```
 
 ### Test File
@@ -460,7 +460,7 @@ Configure in `tests/Pest.php`:
 use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 
 pest()->extends(TestCase::class)->in('Browser');
@@ -471,7 +471,7 @@ pest()->extends(TestCase::class)->in('Browser');
 If your frontend uses custom API endpoints, configure custom environment variables:
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend')
     ->env([
         'NUXT_PUBLIC_API_BASE'  => '/api/',

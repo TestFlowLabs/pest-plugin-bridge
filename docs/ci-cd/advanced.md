@@ -163,7 +163,7 @@ on:
 ### Nuxt 3
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 
@@ -185,21 +185,21 @@ For production build testing:
 Default port is 5173:
 
 ```php
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 
 ### Next.js
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 
 ### Vue CLI (Legacy)
 
 ```php
-Bridge::setDefault('http://localhost:8080')
+Bridge::add('http://localhost:8080')
     ->serve('npm run serve', cwd: '../frontend');
 ```
 

@@ -242,7 +242,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
 // tests/Pest.php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:5173');
+Bridge::add('http://localhost:5173');
 ```
 
 ### Test Files
@@ -501,7 +501,7 @@ Configure in `tests/Pest.php`:
 use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend');
 
 pest()->extends(TestCase::class)->in('Browser');
@@ -513,7 +513,7 @@ If your frontend uses custom API endpoints, configure custom environment variabl
 
 ```php
 // For Vite-based React
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->env([
         'VITE_API_BASE'  => '/api/',
@@ -521,7 +521,7 @@ Bridge::setDefault('http://localhost:5173')
     ]);
 
 // For Create React App
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm start', cwd: '../frontend')
     ->env([
         'REACT_APP_API_BASE'  => '/api/',

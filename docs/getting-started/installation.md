@@ -47,7 +47,7 @@ Configure in your `tests/Pest.php` file:
 
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:5173');
+Bridge::add('http://localhost:5173');
 ```
 
 ## Step 4: Verify Installation
@@ -75,7 +75,7 @@ With `->serve()` configuration, the frontend starts automatically when tests run
 
 ```php
 // tests/Pest.php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('ready|localhost');
 ```

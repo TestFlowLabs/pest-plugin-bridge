@@ -161,7 +161,7 @@ function handleLogout() {
 
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:5173');
+Bridge::add('http://localhost:5173');
 ```
 
 ### Test File
@@ -374,7 +374,7 @@ Configure in `tests/Pest.php`:
 use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready');
 
@@ -386,7 +386,7 @@ Vite compiles JavaScript modules on-demand when the browser first requests them.
 
 For very large apps, add extra warmup time:
 ```php
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready')
     ->warmup(3000);  // Additional 3s warmup
@@ -398,7 +398,7 @@ Bridge::setDefault('http://localhost:5173')
 If your frontend uses multiple API endpoints (e.g., admin API, public API), configure custom environment variables:
 
 ```php
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready')
     ->env([

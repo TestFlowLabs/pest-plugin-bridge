@@ -41,7 +41,7 @@ Then configure Bridge to use the frontend:
 
 ```php
 // backend/tests/Pest.php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 

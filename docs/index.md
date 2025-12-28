@@ -17,7 +17,7 @@ hero:
       link: https://github.com/TestFlowLabs/pest-plugin-bridge
 ---
 
-<div class="feature-sections">
+<div class="feature-sections vp-doc">
 
 <div class="feature-section">
 <div class="feature-text">
@@ -81,7 +81,7 @@ test('user can login', function () {
 
 **No manual server start.** Frontend starts on first `bridge()` call, stops when tests complete.
 
-API URL automatically injected for Vite, Nuxt, Next.js, and React.
+API URL automatically injected for Vite, Nuxt, Next.js, and React. Child frontends share the same server process.
 
 [Configuration →](/guide/configuration)
 
@@ -92,11 +92,10 @@ API URL automatically injected for Vite, Nuxt, Next.js, and React.
 // tests/Pest.php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: '../frontend')
-    ->readyWhen('Local:.*http');
-
-// That's it! Frontend starts automatically.
+Bridge::add('http://localhost:3000')
+    ->child('/admin', 'admin')       // Same server, /admin path
+    ->child('/analytics', 'analytics')
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 </div>
@@ -132,7 +131,7 @@ steps:
 
 ```php
 // tests/Pest.php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend');
 ```
 
@@ -178,11 +177,11 @@ workflow_dispatch:
 <div class="feature-section">
 <div class="feature-text">
 
-## Multiple Frontends
+## Multiple Bridged Frontends
 
-**Admin panel + Customer portal + Mobile?** Test them all in one test suite with named instances.
+**Admin panel + Customer portal + Mobile?** Test them all in one test suite with named bridged frontends.
 
-Each frontend gets its own port and server command.
+Each bridged frontend gets its own port and server command. Child frontends share the parent's server.
 
 [Multiple frontends →](/ci-cd/multi-repo#multiple-frontends)
 
@@ -191,9 +190,10 @@ Each frontend gets its own port and server command.
 
 ```php
 // tests/Pest.php
-Bridge::setDefault('http://localhost:3000');
-Bridge::make('admin', 'http://localhost:3001')
-    ->serve('npm run dev -- --port 3001', cwd: '../admin');
+Bridge::add('http://localhost:3000');                  // Default
+Bridge::add('http://localhost:3001', 'admin')
+    ->child('/analytics', 'analytics')
+    ->serve('npm run dev', cwd: '../admin');
 ```
 
 ```php
@@ -203,6 +203,10 @@ test('customer views products', function () {
 
 test('admin manages users', function () {
     $this->bridge('/users', 'admin')->assertSee('User Management');
+});
+
+test('analytics shows charts', function () {
+    $this->bridge('/', 'analytics')->assertVisible('[data-testid="chart"]');
 });
 ```
 

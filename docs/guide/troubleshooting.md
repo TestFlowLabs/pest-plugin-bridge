@@ -56,7 +56,7 @@ npx playwright install-deps chromium
 $this->bridge('/', options: ['timeout' => 60000]);  // 60s timeout
 
 // Or add extra warmup delay after server is ready
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready')
     ->warmup(2000);  // Additional 2s delay
@@ -90,7 +90,7 @@ taskkill /PID <PID> /F
 **Symptom**: Server starts but `bridge()` can't connect
 
 **Checklist**:
-1. URL in `Bridge::setDefault()` matches actual server URL
+1. URL in `Bridge::add()` matches actual server URL
 2. Server is binding to `0.0.0.0` or `localhost`, not just `127.0.0.1`
 3. No firewall blocking the port
 
@@ -101,7 +101,7 @@ taskkill /PID <PID> /F
 **Solution**: Use `readyWhen()` with a pattern matching your server's output:
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('Your custom pattern');
 ```
