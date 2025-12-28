@@ -15,26 +15,30 @@ hero:
 
 features:
   - icon: 🌉
-    title: Bridge the Gap
-    details: Test frontends running on different ports or servers — all from your Laravel test suite using Pest.
+    title: Bridge to External Frontends
+    details: Test frontends running on different ports or servers — all from your Laravel test suite using Pest's elegant syntax.
     link: /getting-started/introduction
     linkText: Learn more →
-  - icon: 🧪
-    title: Extends Pest Browser Testing
-    details: Built on top of pestphp/pest-plugin-browser. Same elegant syntax, now for external frontends.
-    link: /getting-started/installation
-    linkText: Installation →
-  - icon: ⚡
-    title: 4-Step Setup
-    details: One line of code. Configure once, test everywhere.
-    link: /getting-started/quick-start
-    linkText: Quick start →
+  - icon: 🚀
+    title: Automatic Server Management
+    details: Frontend servers start automatically on first test, stop when done. API URL injected for all frameworks.
+    link: /guide/configuration#automatic-server-management
+    linkText: See how →
   - icon: 🔀
     title: Multiple Frontends
-    details: Test admin panels, customer portals, and micro-frontends in a single test file.
+    details: Test admin panels, customer portals, and micro-frontends in a single test file with named frontends.
     link: /guide/configuration#multiple-frontends
-    linkText: See how →
+    linkText: Configure →
+  - icon: 🎯
+    title: Vue/React Ready
+    details: Built-in patterns for Vue v-model, React hooks, and all reactive frameworks. typeSlowly() triggers proper events.
+    link: /guide/best-practices#vue-nuxt-framework-specific-best-practices
+    linkText: Best practices →
 ---
+
+<script setup>
+import { VPTeamMembers } from 'vitepress/theme'
+</script>
 
 <style>
 .code-section {
@@ -67,43 +71,25 @@ features:
 }
 </style>
 
-## The Problem
-
-Modern apps use **decoupled architectures**:
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│  Laravel API    │ ◄─────► │  Vue/React/Nuxt │
-│  localhost:8000 │   API   │  localhost:3000 │
-└─────────────────┘         └─────────────────┘
-        ▲                           ▲
-        │                           │
-        └─── Where tests run        └─── What we need to test
-```
-
 <div class="code-section">
 <div class="section-header">
   <span class="section-icon">🌉</span>
-  <span class="section-title">bridge() — The Bridge</span>
+  <span class="section-title">bridge() — One Method, Full Access</span>
   <a class="section-link" href="/guide/writing-tests">How it works →</a>
 </div>
 <div class="section-desc">
-One method bridges your Laravel tests to any external frontend. Use familiar Pest syntax.
+Test any external frontend with familiar Pest syntax. Create data in Laravel, test the UI in Vue/React/Nuxt.
 </div>
 
 ```php
-test('user can login to external frontend', function () {
-    // Create user in Laravel
-    $user = User::factory()->create([
-        'email' => 'test@example.com',
-    ]);
+test('user can login', function () {
+    $user = User::factory()->create(['email' => 'test@example.com']);
 
-    // Test the Vue/React/Nuxt frontend running on port 3000
     $this->bridge('/login')
-        ->fill('[data-testid="email-input"]', 'test@example.com')
-        ->fill('[data-testid="password-input"]', 'password')
+        ->typeSlowly('[data-testid="email"]', 'test@example.com', 20)
+        ->typeSlowly('[data-testid="password"]', 'password', 20)
         ->click('[data-testid="login-button"]')
-        ->wait(2)
+        ->waitForEvent('networkidle')
         ->assertPathContains('/dashboard')
         ->assertSee('Welcome');
 });
@@ -113,37 +99,54 @@ test('user can login to external frontend', function () {
 
 <div class="code-section">
 <div class="section-header">
-  <span class="section-icon">🔀</span>
-  <span class="section-title">Multiple Frontends in One File</span>
-  <a class="section-link" href="/guide/configuration#multiple-frontends">Configuration →</a>
+  <span class="section-icon">🚀</span>
+  <span class="section-title">Automatic Frontend Server Management</span>
+  <a class="section-link" href="/guide/configuration#automatic-server-management">Configuration →</a>
 </div>
 <div class="section-desc">
-Test different frontends using <code>describe()</code> blocks. Each block targets a different URL.
+No manual server start. Frontend starts on first bridge() call, stops when tests complete. API URL auto-injected.
 </div>
 
 ```php
-// tests/Pest.php - Configure all frontends once
+// tests/Pest.php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('Local:.*http');
+
+// That's it! Frontend starts automatically when tests run.
+```
+
+**Auto-injected environment variables:**
+- `VITE_API_URL`, `NUXT_PUBLIC_API_BASE`, `NEXT_PUBLIC_API_URL`, `REACT_APP_API_URL`
+
+</div>
+
+<div class="code-section">
+<div class="section-header">
+  <span class="section-icon">🔀</span>
+  <span class="section-title">Multiple Frontends</span>
+  <a class="section-link" href="/guide/configuration#multiple-frontends">See how →</a>
+</div>
+<div class="section-desc">
+Test admin panels, customer portals, and micro-frontends in a single test file.
+</div>
+
+```php
+// tests/Pest.php
 Bridge::setDefault('http://localhost:3000');           // Customer portal
-Bridge::frontend('admin', 'http://localhost:3001');    // Admin dashboard
+Bridge::frontend('admin', 'http://localhost:3001')     // Admin dashboard
+    ->serve('npm run dev', cwd: '../admin-panel');
 ```
 
 ```php
 // tests/Browser/MultiFrontendTest.php
 test('customer can view products', function () {
-    // Uses default frontend (localhost:3000)
     $this->bridge('/products')->assertSee('Product Catalog');
 });
 
-test('customer can add to cart', function () {
-    $this->bridge('/products/1')
-        ->click('[data-testid="add-to-cart"]')
-        ->assertVisible('[data-testid="cart-badge"]');
-});
-
 test('admin can manage users', function () {
-    // Uses admin frontend (localhost:3001)
     $this->bridge('/users', 'admin')->assertSee('User Management');
 });
 ```
@@ -152,12 +155,34 @@ test('admin can manage users', function () {
 
 <div class="code-section">
 <div class="section-header">
-  <span class="section-icon">🎭</span>
-  <span class="section-title">Debug with Headed Mode</span>
-  <a class="section-link" href="/guide/best-practices">Best practices →</a>
+  <span class="section-icon">🎯</span>
+  <span class="section-title">Vue/React Compatible</span>
+  <a class="section-link" href="/guide/best-practices#vue-nuxt-framework-specific-best-practices">Best practices →</a>
 </div>
 <div class="section-desc">
-See exactly what's happening. Run with <code>--headed</code> or pause mid-test with <code>debug()</code>.
+Playwright's fill() doesn't trigger Vue v-model events. typeSlowly() solves this by simulating real keystrokes.
+</div>
+
+```php
+// ❌ fill() sets DOM value directly — Vue v-model won't see it
+->fill('[data-testid="email"]', 'test@example.com')
+
+// ✅ typeSlowly() triggers keydown/input/keyup — Vue reactivity works
+->typeSlowly('[data-testid="email"]', 'test@example.com', 20)
+```
+
+**Works with:** Vue, Nuxt, React, Next.js, Angular, Svelte — any reactive framework.
+
+</div>
+
+<div class="code-section">
+<div class="section-header">
+  <span class="section-icon">🎭</span>
+  <span class="section-title">Debug with Headed Mode</span>
+  <a class="section-link" href="/guide/best-practices#debug-effectively">Debugging →</a>
+</div>
+<div class="section-desc">
+See exactly what's happening. Run with --headed or pause mid-test with debug().
 </div>
 
 ```bash
@@ -168,8 +193,8 @@ See exactly what's happening. Run with <code>--headed</code> or pause mid-test w
 ```php
 test('debugging a complex flow', function () {
     $this->bridge('/checkout')
-        ->fill('[data-testid="card-number"]', '4242424242424242')
-        ->debug()  // ← Browser opens, test pauses here for inspection
+        ->fill('[data-testid="card"]', '4242424242424242')
+        ->debug()  // ← Browser opens, test pauses here
         ->click('[data-testid="pay-button"]')
         ->assertSee('Payment successful');
 });
@@ -179,8 +204,26 @@ test('debugging a complex flow', function () {
 
 <div class="code-section">
 <div class="section-header">
-  <span class="section-icon">🧪</span>
-  <span class="section-title">Full Pest Assertion Power</span>
+  <span class="section-icon">📸</span>
+  <span class="section-title">Automatic Screenshots on Failure</span>
+  <a class="section-link" href="/guide/best-practices#check-screenshots">Screenshots →</a>
+</div>
+<div class="section-desc">
+When a test fails, a screenshot is automatically captured. See exactly where it went wrong.
+</div>
+
+```bash
+   FAIL  Tests\Browser\CheckoutTest
+  ✕ complete checkout flow
+    Screenshot saved: Tests/Browser/Screenshots/complete_checkout_flow.png
+```
+
+</div>
+
+<div class="code-section">
+<div class="section-header">
+  <span class="section-icon">⚡</span>
+  <span class="section-title">All Pest Assertions</span>
   <a class="section-link" href="/guide/assertions">All assertions →</a>
 </div>
 <div class="section-desc">
@@ -188,86 +231,15 @@ All Pest browser assertions work seamlessly. Chain them for expressive, readable
 </div>
 
 ```php
-test('complete checkout flow', function () {
+test('complete checkout', function () {
     $this->bridge('/cart')
-        // Visibility assertions
         ->assertVisible('[data-testid="cart-items"]')
-        ->assertNotVisible('[data-testid="empty-cart-message"]')
-
-        // Text assertions
         ->assertSee('Shopping Cart')
         ->assertSeeIn('[data-testid="total"]', '$99.00')
-
-        // Form interactions
-        ->fill('[data-testid="coupon-input"]', 'SAVE10')
-        ->click('[data-testid="apply-coupon"]')
-        ->wait(1)
-
-        // URL assertions after navigation
         ->click('[data-testid="checkout-button"]')
-        ->wait(2)
-        ->assertPathContains('/checkout')
-        ->assertTitle('Checkout - MyStore');
+        ->waitForEvent('networkidle')
+        ->assertPathContains('/checkout');
 });
-```
-
-</div>
-
-<div class="code-section">
-<div class="section-header">
-  <span class="section-icon">⚙️</span>
-  <span class="section-title">Simple Configuration</span>
-  <a class="section-link" href="/guide/configuration">Configuration →</a>
-</div>
-<div class="section-desc">
-One line of code. That's all you need.
-</div>
-
-```php
-// Configuration with automatic server management (in tests/Pest.php)
-use TestFlowLabs\PestPluginBridge\Bridge;
-use TestFlowLabs\PestPluginBridge\BridgeTrait;
-use Tests\TestCase;
-
-// Simple: just URL (manual server start)
-Bridge::setDefault('http://localhost:3000');
-
-// With auto-start: servers launch automatically
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:3000')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('ready|localhost'))
-    ->in('Browser');
-```
-
-Cleanup is automatic — no `afterAll` needed.
-
-</div>
-
-<div class="code-section">
-<div class="section-header">
-  <span class="section-icon">📸</span>
-  <span class="section-title">Automatic Screenshots on Failure</span>
-  <a class="section-link" href="/guide/best-practices#debugging">Debugging →</a>
-</div>
-<div class="section-desc">
-When a test fails, a screenshot is automatically captured for debugging.
-</div>
-
-```bash
-./vendor/bin/pest tests/Browser/CheckoutTest.php
-
-   FAIL  Tests\Browser\CheckoutTest
-  ✕ complete checkout flow                                   3.2s
-    Screenshot saved: Tests/Browser/Screenshots/checkout_flow_1703847293.png
-
-  Tests:    1 failed
-  Duration: 3.89s
-```
-
-```
-Tests/Browser/Screenshots/
-└── checkout_flow_1703847293.png   ← See exactly where it failed
 ```
 
 </div>
