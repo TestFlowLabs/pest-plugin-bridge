@@ -26,13 +26,6 @@ use Pest\Browser\Playwright\Playwright;
 trait BrowserMocking
 {
     /**
-     * Stored browser mocks for the current test.
-     *
-     * @var array<string, array{status?: int, body?: mixed, headers?: array<string, string>}>
-     */
-    private static array $browserMocks = [];
-
-    /**
      * Register browser-level HTTP mocks.
      *
      * These mocks intercept fetch() and XMLHttpRequest calls made by JavaScript
@@ -42,7 +35,7 @@ trait BrowserMocking
      */
     public static function mockBrowser(array $mocks): void
     {
-        self::$browserMocks = $mocks;
+        BrowserMockStore::set($mocks);
     }
 
     /**
@@ -50,7 +43,7 @@ trait BrowserMocking
      */
     public static function clearBrowserMocks(): void
     {
-        self::$browserMocks = [];
+        BrowserMockStore::clear();
     }
 
     /**
@@ -58,7 +51,7 @@ trait BrowserMocking
      */
     public static function hasBrowserMocks(): bool
     {
-        return self::$browserMocks !== [];
+        return BrowserMockStore::hasMocks();
     }
 
     /**
@@ -71,18 +64,6 @@ trait BrowserMocking
      */
     public function bridgeWithMocks(string $path, ?string $frontend = null, array $options = []): AwaitableWebpage
     {
-        // DEBUG: Check if mocks are registered
-        $hasMocks = self::hasBrowserMocks();
-        $mockCount = count(self::$browserMocks);
-        file_put_contents('/tmp/bridge_mock_debug.log', sprintf(
-            "[%s] bridgeWithMocks called - path: %s, hasMocks: %s, mockCount: %d, mocks: %s\n",
-            date('Y-m-d H:i:s'),
-            $path,
-            $hasMocks ? 'true' : 'false',
-            $mockCount,
-            json_encode(self::$browserMocks)
-        ), FILE_APPEND);
-
         // Ensure frontend servers are started (lazy initialization)
         FrontendManager::instance()->startAll();
 
@@ -110,20 +91,8 @@ trait BrowserMocking
         $context->addInitScript(InitScript::get());
 
         // Add our mock interceptor script
-        if (self::hasBrowserMocks()) {
-            $mockScript = $this->generateMockScript();
-            file_put_contents('/tmp/bridge_mock_debug.log', sprintf(
-                "[%s] Adding init script (length: %d bytes)\nScript preview: %.500s...\n",
-                date('Y-m-d H:i:s'),
-                strlen($mockScript),
-                $mockScript
-            ), FILE_APPEND);
-            $context->addInitScript($mockScript);
-        } else {
-            file_put_contents('/tmp/bridge_mock_debug.log', sprintf(
-                "[%s] WARNING: No browser mocks registered, skipping init script\n",
-                date('Y-m-d H:i:s')
-            ), FILE_APPEND);
+        if (BrowserMockStore::hasMocks()) {
+            $context->addInitScript($this->generateMockScript());
         }
 
         // Build URL and navigate
@@ -143,7 +112,7 @@ trait BrowserMocking
      */
     public function applyBrowserMocks(AwaitableWebpage|Webpage $webpage): AwaitableWebpage|Webpage
     {
-        if (!self::hasBrowserMocks()) {
+        if (!BrowserMockStore::hasMocks()) {
             return $webpage;
         }
 
@@ -168,7 +137,7 @@ trait BrowserMocking
      */
     private function generateMockScript(): string
     {
-        $mocksJson = json_encode(self::$browserMocks, JSON_THROW_ON_ERROR);
+        $mocksJson = json_encode(BrowserMockStore::get(), JSON_THROW_ON_ERROR);
 
         // Escape special characters in JSON for JavaScript string embedding
         $escapedMocksJson = addslashes($mocksJson);
