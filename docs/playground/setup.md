@@ -208,7 +208,3 @@ If you see CORS errors in the browser console:
 1. Ensure the Laravel server is running
 2. Check that `SANCTUM_STATEFUL_DOMAINS` includes `localhost:3000`
 3. Verify cookies are being sent with requests
-
-## Next Steps
-
-Once the playground is set up, learn how to [run the tests](/playground/running-tests).

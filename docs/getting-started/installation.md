@@ -123,7 +123,3 @@ Ensure your frontend is running and accessible:
 ```bash
 curl http://localhost:5173
 ```
-
-## Next Steps
-
-Now that you're set up, let's write your [first test](/getting-started/quick-start).

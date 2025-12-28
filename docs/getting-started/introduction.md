@@ -77,7 +77,3 @@ The plugin simply prepends your configured base URL to paths, then delegates to 
 - Pest 4.0 or higher
 - Pest Plugin Browser 4.0 or higher
 - Node.js (for Playwright)
-
-## Next Steps
-
-Ready to get started? Head to the [Installation](/getting-started/installation) guide.

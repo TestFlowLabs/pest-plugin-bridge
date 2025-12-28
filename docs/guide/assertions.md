@@ -226,7 +226,3 @@ Tests/Browser/Screenshots/
 ```
 
 The filename corresponds to the test name, making it easy to debug failures.
-
-## Next Steps
-
-Learn about [Best Practices](/guide/best-practices) for writing maintainable tests.

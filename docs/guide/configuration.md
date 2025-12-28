@@ -144,7 +144,3 @@ test('shows revenue metrics', function () {
 ::: tip Named Frontends
 Named frontends are registered once in `tests/Pest.php` and available in all test files. No need to repeat configuration in each file.
 :::
-
-## Next Steps
-
-Now that configuration is set up, learn about [Writing Tests](/guide/writing-tests).

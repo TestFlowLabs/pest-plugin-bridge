@@ -303,9 +303,3 @@ SESSION_DOMAIN=localhost
 
 VITE_API_URL=http://localhost:8000
 ```
-
-## Next Steps
-
-- Learn about [Writing Tests](/guide/writing-tests)
-- See [Best Practices](/guide/best-practices)
-- Check out [Examples](/examples/vue-vite)

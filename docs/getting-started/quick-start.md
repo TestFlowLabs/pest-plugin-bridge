@@ -147,10 +147,3 @@ test('user can login', function () {
 });
 ```
 
----
-
-## Next Steps
-
-- [Configuration](/guide/configuration) - Multiple frontends and more
-- [Connection Architecture](/guide/connection) - How frontend and backend connect
-- [Writing Tests](/guide/writing-tests) - Test patterns and examples

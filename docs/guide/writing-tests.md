@@ -254,8 +254,3 @@ describe('E-commerce checkout flow', function () {
     });
 });
 ```
-
-## Next Steps
-
-- Learn about all available [Assertions](/guide/assertions)
-- Follow [Best Practices](/guide/best-practices)
