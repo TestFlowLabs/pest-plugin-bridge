@@ -166,6 +166,10 @@ Bridge::setDefault('http://localhost:5173');
 
 ### Test File
 
+::: tip Use typeSlowly() for Vue
+Vue's `v-model` doesn't sync with Playwright's `fill()` because it sets DOM values directly without firing input events. Use `typeSlowly()` instead.
+:::
+
 ```php
 <?php
 
@@ -194,19 +198,23 @@ describe('Vue Application', function () {
 
     test('shows validation error for invalid credentials', function () {
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', 'wrong@example.com')
-            ->fill('[data-testid="password-input"]', 'wrongpassword')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', 'wrong@example.com', 20)
+            ->typeSlowly('[data-testid="password-input"]', 'wrongpassword', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertVisible('[data-testid="error-message"]');
     });
 
     test('successful login redirects to dashboard', function () {
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard')
             ->assertVisible('[data-testid="dashboard-header"]')
             ->assertSeeIn('[data-testid="user-greeting"]', 'Welcome, Test User');
@@ -215,10 +223,12 @@ describe('Vue Application', function () {
     test('dashboard shows stats', function () {
         // Login first
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2);
+            ->waitForEvent('networkidle');
 
         // Check dashboard content
         $this->bridge('/dashboard')
@@ -230,10 +240,12 @@ describe('Vue Application', function () {
     test('logout returns to login page', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard');
 
         // Logout
@@ -306,8 +318,10 @@ describe('Vue Application', function () {
 describe('Registration Form Validation', function () {
     test('shows name error when empty', function () {
         $this->bridge('/register')
-            ->fill('[data-testid="name-input"]', '')
-            ->fill('[data-testid="email-input"]', 'test@example.com') // Triggers blur
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="name-input"]')
+            ->typeSlowly('[data-testid="name-input"]', '', 20)
+            ->click('[data-testid="email-input"]') // Triggers blur
             ->wait(0.3)
             ->assertVisible('[data-testid="name-error"]')
             ->assertSee('Name is required');
@@ -315,8 +329,10 @@ describe('Registration Form Validation', function () {
 
     test('shows email error for invalid format', function () {
         $this->bridge('/register')
-            ->fill('[data-testid="email-input"]', 'invalid-email')
-            ->fill('[data-testid="password-input"]', 'password') // Triggers blur
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', 'invalid-email', 20)
+            ->click('[data-testid="password-input"]') // Triggers blur
             ->wait(0.3)
             ->assertVisible('[data-testid="email-error"]')
             ->assertSee('Please enter a valid email');
@@ -324,7 +340,9 @@ describe('Registration Form Validation', function () {
 
     test('shows password error when too short', function () {
         $this->bridge('/register')
-            ->fill('[data-testid="password-input"]', '123')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="password-input"]')
+            ->typeSlowly('[data-testid="password-input"]', '123', 20)
             ->click('[data-testid="submit-button"]')
             ->wait(0.3)
             ->assertVisible('[data-testid="password-error"]')
@@ -333,11 +351,13 @@ describe('Registration Form Validation', function () {
 
     test('successful registration', function () {
         $this->bridge('/register')
-            ->fill('[data-testid="name-input"]', 'New User')
-            ->fill('[data-testid="email-input"]', 'new@example.com')
-            ->fill('[data-testid="password-input"]', 'securepassword123')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="name-input"]')
+            ->typeSlowly('[data-testid="name-input"]', 'New User', 20)
+            ->typeSlowly('[data-testid="email-input"]', 'new@example.com', 20)
+            ->typeSlowly('[data-testid="password-input"]', 'securepassword123', 20)
             ->click('[data-testid="submit-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard')
             ->assertSee('Welcome, New User');
     });
@@ -351,11 +371,14 @@ describe('Registration Form Validation', function () {
 Configure in `tests/Pest.php`:
 
 ```php
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:5173')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('VITE.*ready|localhost:5173'))
-    ->in('Browser');
+use TestFlowLabs\PestPluginBridge\Bridge;
+use Tests\TestCase;
+
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready|localhost:5173');
+
+pest()->extends(TestCase::class)->in('Browser');
 ```
 
 Then simply run:

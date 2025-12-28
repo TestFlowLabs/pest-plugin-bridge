@@ -190,15 +190,18 @@ Frontend (localhost:3000)
 
 ### Automatic Server Management (Recommended)
 
-With `->serve()` configuration, both servers start automatically:
+With `->serve()` configuration, frontend servers start automatically on first `bridge()` call:
 
 ```php
 // tests/Pest.php
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:3000')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('ready|localhost'))
-    ->in('Browser');
+use TestFlowLabs\PestPluginBridge\Bridge;
+use Tests\TestCase;
+
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('ready|localhost');
+
+pest()->extends(TestCase::class)->in('Browser');
 ```
 
 Then simply run:
@@ -266,13 +269,16 @@ lsof -ti:3000 | xargs kill -9
 
 **Symptom**: Tests interfere with each other
 
-**Solution**: Use Laravel's `RefreshDatabase` or `DatabaseTransactions`:
-```php
-uses(RefreshDatabase::class);
+**Note**: `RefreshDatabase` trait doesn't work with external server tests because transaction isolation prevents the external server from seeing database changes.
 
-test('user can login', function () {
-    $user = User::factory()->create();
-    // ...
+**Solution**: Use unique test data and clean up manually:
+```php
+test('user can register', function () {
+    $email = 'test'.time().'@example.com'; // Unique email
+
+    $this->bridge('/register')
+        ->typeSlowly('[data-testid="email"]', $email, 20)
+        // ...
 });
 ```
 

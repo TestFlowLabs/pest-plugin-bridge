@@ -247,6 +247,10 @@ Bridge::setDefault('http://localhost:5173');
 
 ### Test Files
 
+::: tip Use typeSlowly() for React
+React's controlled inputs don't sync with Playwright's `fill()` because it sets DOM values directly without firing onChange events. Use `typeSlowly()` instead.
+:::
+
 ```php
 <?php
 
@@ -275,19 +279,23 @@ describe('React Application', function () {
 
     test('shows error for invalid credentials', function () {
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', 'wrong@example.com')
-            ->fill('[data-testid="password-input"]', 'wrongpassword')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', 'wrong@example.com', 20)
+            ->typeSlowly('[data-testid="password-input"]', 'wrongpassword', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertVisible('[data-testid="error-message"]');
     });
 
     test('successful login redirects to dashboard', function () {
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard')
             ->assertVisible('[data-testid="dashboard-page"]');
     });
@@ -295,10 +303,12 @@ describe('React Application', function () {
     test('dashboard shows user name', function () {
         // Login first
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2);
+            ->waitForEvent('networkidle');
 
         $this->bridge('/dashboard')
             ->assertSeeIn('[data-testid="user-name"]', 'Test User');
@@ -307,10 +317,12 @@ describe('React Application', function () {
     test('dashboard shows loading then stats', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2);
+            ->waitForEvent('networkidle');
 
         // Dashboard loads
         $this->bridge('/dashboard')
@@ -324,10 +336,12 @@ describe('React Application', function () {
     test('user can logout', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard');
 
         // Logout
@@ -484,11 +498,14 @@ describe('React Hooks Behavior', function () {
 Configure in `tests/Pest.php`:
 
 ```php
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:5173')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('VITE.*ready|localhost:5173'))
-    ->in('Browser');
+use TestFlowLabs\PestPluginBridge\Bridge;
+use Tests\TestCase;
+
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready|localhost:5173');
+
+pest()->extends(TestCase::class)->in('Browser');
 ```
 
 Then simply run:

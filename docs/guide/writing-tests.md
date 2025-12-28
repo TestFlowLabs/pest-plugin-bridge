@@ -55,13 +55,20 @@ test('can access different pages', function () {
 
 ### Filling Inputs
 
+::: warning Vue/React/Nuxt Users
+Use `typeSlowly()` instead of `fill()` for reactive frameworks. Vue's `v-model` and React's controlled inputs don't sync with `fill()` because it sets DOM values directly without firing input events.
+:::
+
 ```php
-test('can fill form', function () {
-    $this->bridge('/register')
-        ->fill('input[name="name"]', 'John Doe')
-        ->fill('input[name="email"]', 'john@example.com')
-        ->fill('input[name="password"]', 'secret123');
-});
+// For non-reactive forms (plain HTML):
+$this->bridge('/register')
+    ->fill('input[name="name"]', 'John Doe');
+
+// For Vue, React, Nuxt, Next.js (recommended):
+$this->bridge('/register')
+    ->waitForEvent('networkidle')
+    ->click('input[name="name"]')
+    ->typeSlowly('input[name="name"]', 'John Doe', 20);
 ```
 
 ### Using Data Test IDs (Recommended)
@@ -236,20 +243,22 @@ describe('E-commerce checkout flow', function () {
 
     test('user can complete checkout', function () {
         $this->bridge('/login')
-            ->fill('[data-testid="email"]', $this->user->email)
-            ->fill('[data-testid="password"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email"]')
+            ->typeSlowly('[data-testid="email"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard');
 
         $this->bridge('/cart')
             ->click('[data-testid="checkout-button"]')
-            ->wait(1)
-            ->fill('[data-testid="card-number"]', '4242424242424242')
-            ->fill('[data-testid="card-expiry"]', '12/25')
-            ->fill('[data-testid="card-cvc"]', '123')
+            ->waitForEvent('networkidle')
+            ->typeSlowly('[data-testid="card-number"]', '4242424242424242', 20)
+            ->typeSlowly('[data-testid="card-expiry"]', '12/25', 20)
+            ->typeSlowly('[data-testid="card-cvc"]', '123', 20)
             ->click('[data-testid="pay-button"]')
-            ->wait(3)
+            ->waitForEvent('networkidle')
             ->assertSee('Order confirmed');
     });
 });

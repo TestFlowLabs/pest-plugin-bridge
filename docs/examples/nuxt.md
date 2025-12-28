@@ -224,6 +224,10 @@ Bridge::setDefault('http://localhost:3000');
 
 ### Test File
 
+::: tip Use typeSlowly() for Vue/Nuxt
+Vue's `v-model` doesn't sync with Playwright's `fill()` because it sets DOM values directly without firing input events. Use `typeSlowly()` instead to trigger proper keyboard events.
+:::
+
 ```php
 <?php
 
@@ -252,10 +256,12 @@ describe('Nuxt 3 Application', function () {
 
     test('user can login and see dashboard', function () {
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard')
             ->assertVisible('[data-testid="dashboard-page"]')
             ->assertSeeIn('[data-testid="welcome-message"]', 'Welcome, Test User');
@@ -264,10 +270,12 @@ describe('Nuxt 3 Application', function () {
     test('dashboard loads stats after authentication', function () {
         // Login first
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2);
+            ->waitForEvent('networkidle');
 
         // Stats should load
         $this->bridge('/dashboard')
@@ -279,10 +287,12 @@ describe('Nuxt 3 Application', function () {
     test('dashboard shows loading state for client-side data', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2);
+            ->waitForEvent('networkidle');
 
         // Activity list loads client-side
         $this->bridge('/dashboard')
@@ -294,10 +304,12 @@ describe('Nuxt 3 Application', function () {
     test('user can logout', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', $this->user->email)
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard');
 
         // Logout
@@ -325,10 +337,12 @@ Nuxt 3 renders content on the server. Test that SSR content appears immediately:
 test('SSR content appears without waiting', function () {
     // Login first
     $this->bridge('/login')
-        ->fill('[data-testid="email-input"]', $this->user->email)
-        ->fill('[data-testid="password-input"]', 'password')
+        ->waitForEvent('networkidle')
+        ->click('[data-testid="email-input"]')
+        ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+        ->typeSlowly('[data-testid="password-input"]', 'password', 20)
         ->click('[data-testid="login-button"]')
-        ->wait(2);
+        ->waitForEvent('networkidle');
 
     // SSR content should be immediately visible
     $this->bridge('/dashboard')
@@ -342,10 +356,12 @@ test('SSR content appears without waiting', function () {
 ```php
 test('client-side features work after hydration', function () {
     $this->bridge('/login')
-        ->fill('[data-testid="email-input"]', $this->user->email)
-        ->fill('[data-testid="password-input"]', 'password')
+        ->waitForEvent('networkidle')
+        ->click('[data-testid="email-input"]')
+        ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+        ->typeSlowly('[data-testid="password-input"]', 'password', 20)
         ->click('[data-testid="login-button"]')
-        ->wait(2);
+        ->waitForEvent('networkidle');
 
     // Button click requires hydration
     $this->bridge('/dashboard')
@@ -361,10 +377,12 @@ test('client-side features work after hydration', function () {
 ```php
 test('lazy loaded content appears after client fetch', function () {
     $this->bridge('/login')
-        ->fill('[data-testid="email-input"]', $this->user->email)
-        ->fill('[data-testid="password-input"]', 'password')
+        ->waitForEvent('networkidle')
+        ->click('[data-testid="email-input"]')
+        ->typeSlowly('[data-testid="email-input"]', $this->user->email, 20)
+        ->typeSlowly('[data-testid="password-input"]', 'password', 20)
         ->click('[data-testid="login-button"]')
-        ->wait(2);
+        ->waitForEvent('networkidle');
 
     // Lazy content with server: false
     $this->bridge('/dashboard')
@@ -390,10 +408,12 @@ describe('Auth Middleware', function () {
     test('protected route accessible when authenticated', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', 'test@example.com')
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', 'test@example.com', 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2);
+            ->waitForEvent('networkidle');
 
         // Now can access
         $this->bridge('/dashboard')
@@ -414,10 +434,12 @@ describe('Guest Middleware', function () {
     test('login page redirects to dashboard when authenticated', function () {
         // Login
         $this->bridge('/login')
-            ->fill('[data-testid="email-input"]', 'test@example.com')
-            ->fill('[data-testid="password-input"]', 'password')
+            ->waitForEvent('networkidle')
+            ->click('[data-testid="email-input"]')
+            ->typeSlowly('[data-testid="email-input"]', 'test@example.com', 20)
+            ->typeSlowly('[data-testid="password-input"]', 'password', 20)
             ->click('[data-testid="login-button"]')
-            ->wait(2)
+            ->waitForEvent('networkidle')
             ->assertPathContains('/dashboard');
 
         // Try to access login again
@@ -435,11 +457,14 @@ describe('Guest Middleware', function () {
 Configure in `tests/Pest.php`:
 
 ```php
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:3000')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('Local:.*localhost:3000'))
-    ->in('Browser');
+use TestFlowLabs\PestPluginBridge\Bridge;
+use Tests\TestCase;
+
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('Local:.*localhost:3000');
+
+pest()->extends(TestCase::class)->in('Browser');
 ```
 
 Then simply run:

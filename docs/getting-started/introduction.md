@@ -2,27 +2,9 @@
 
 Pest Plugin Bridge extends [Pest's browser testing capabilities](https://pestphp.com/docs/browser-testing) to work with **external frontend applications** running on separate servers.
 
-## The Problem
+## What It Does
 
-Modern web development often uses **decoupled architectures**:
-
-```
-┌─────────────────┐     API      ┌─────────────────┐
-│   Laravel API   │◄────────────►│   Vue/React     │
-│   Port: 8000    │              │   Port: 5173    │
-└─────────────────┘              └─────────────────┘
-```
-
-Your PHP backend and JavaScript frontend run as separate applications. But how do you write end-to-end tests?
-
-**Traditional approaches:**
-- Write tests in JavaScript (Cypress, Playwright) - loses PHP ecosystem benefits
-- Use Laravel Dusk - designed for same-application testing
-- Maintain two test suites - doubles the work
-
-## The Solution
-
-Pest Plugin Bridge lets you test external frontends from your PHP test suite:
+Test Vue, React, Nuxt, Next.js, and other frontend applications from your Laravel test suite:
 
 ```php
 test('user can complete checkout', function () {

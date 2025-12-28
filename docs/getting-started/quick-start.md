@@ -23,18 +23,17 @@ npx playwright install chromium
 <?php
 
 use TestFlowLabs\PestPluginBridge\Bridge;
-use TestFlowLabs\PestPluginBridge\BridgeTrait;
 use Tests\TestCase;
 
 // Option A: Manual server start (you start the frontend separately)
 Bridge::setDefault('http://localhost:3000');
 
 // Option B: Automatic server management (recommended)
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:3000')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('ready|localhost'))
-    ->in('Browser');
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('ready|localhost');
+
+pest()->extends(TestCase::class)->in('Browser');
 ```
 
 ### Step 4: Create and Run a Test
