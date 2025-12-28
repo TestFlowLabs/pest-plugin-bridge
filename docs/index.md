@@ -247,4 +247,44 @@ test('form validation works', function () {
 </div>
 </div>
 
+<div class="feature-section">
+<div class="feature-text">
+
+## Mock External APIs
+
+**Stripe, SendGrid, Weather APIs?** Mock them in your tests without real network calls.
+
+`Bridge::fake()` intercepts Laravel backend HTTP calls. `Bridge::mockBrowser()` intercepts frontend JavaScript fetch/XHR.
+
+[HTTP mocking guide →](/guide/http-faking)
+
+</div>
+<div class="feature-code">
+
+```php
+// Backend: Laravel → Stripe API
+Bridge::fake([
+    'https://api.stripe.com/*' => [
+        'status' => 200,
+        'body' => ['id' => 'ch_123', 'status' => 'succeeded'],
+    ],
+]);
+
+// Frontend: Browser JS → Weather API
+Bridge::mockBrowser([
+    'https://api.weather.com/*' => [
+        'status' => 200,
+        'body' => ['city' => 'Istanbul', 'temp' => 25],
+    ],
+]);
+
+$this->bridge('/dashboard')
+    ->waitForEvent('networkidle')
+    ->assertSee('Payment: succeeded')
+    ->assertSee('Istanbul, 25°C');
+```
+
+</div>
+</div>
+
 </HomeFeatures>
