@@ -38,10 +38,11 @@ final class FrontendServer
             return;
         }
 
+        // Pass null for env to inherit the current process environment
         $this->process = Process::fromShellCommandline(
             $command,
             $this->definition->getWorkingDirectory(),
-            $this->getEnvironmentVariables(),
+            null, // Inherit environment
         );
 
         $this->process->setTimeout(0);
@@ -58,6 +59,15 @@ final class FrontendServer
                 return preg_match("/{$pattern}/i", $output) === 1;
             }
         );
+
+        // Wait for HTTP server to actually respond (not just console output)
+        $this->waitForHttpReady();
+
+        // Apply warmup delay if configured (for large frontends)
+        $warmupMs = $this->definition->getWarmupDelayMs();
+        if ($warmupMs > 0) {
+            usleep($warmupMs * 1000);
+        }
 
         if (!$ready && !$this->isRunning()) {
             throw new RuntimeException(
@@ -103,36 +113,74 @@ final class FrontendServer
      */
     private function getEnvironmentVariables(): array
     {
-        $apiUrl = $this->getApiUrl();
+        // Use getenv() to get all environment variables including PATH, HOME, etc.
+        // $_ENV may be incomplete depending on PHP configuration
+        $env = getenv();
 
-        $apiVariables = [
-            // Generic
-            'API_URL'      => $apiUrl,
-            'API_BASE_URL' => $apiUrl,
-            'BACKEND_URL'  => $apiUrl,
-
-            // Vite
-            'VITE_API_URL'      => $apiUrl,
-            'VITE_API_BASE_URL' => $apiUrl,
-
-            // Nuxt 3
-            'NUXT_PUBLIC_API_BASE' => $apiUrl,
-            'NUXT_PUBLIC_API_URL'  => $apiUrl,
-
-            // Next.js
-            'NEXT_PUBLIC_API_URL'      => $apiUrl,
-            'NEXT_PUBLIC_API_BASE_URL' => $apiUrl,
-
-            // Create React App
-            'REACT_APP_API_URL'      => $apiUrl,
-            'REACT_APP_API_BASE_URL' => $apiUrl,
-        ];
-
-        // Merge with existing environment, keeping only string values
+        // Ensure it's an array of strings
         /** @var array<string, string> $env */
-        $env = array_filter($_ENV, is_string(...));
+        $env = array_filter($env, is_string(...));
 
-        return array_merge($env, $apiVariables);
+        return $env;
+    }
+
+    /**
+     * Wait for the frontend HTTP server to actually respond to requests.
+     *
+     * The console output may indicate "ready" before the HTTP server
+     * is fully accepting connections. This method polls the frontend
+     * URL until it responds or times out.
+     */
+    private function waitForHttpReady(int $maxAttempts = 30, int $delayMs = 100): void
+    {
+        $url = $this->definition->url;
+
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            $ch = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_TIMEOUT        => 1,
+                CURLOPT_CONNECTTIMEOUT => 1,
+                CURLOPT_NOBODY         => true,
+            ]);
+
+            curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode > 0) {
+                // Server is responding, now warm it up with a full page request
+                $this->warmupRequest();
+
+                return;
+            }
+
+            usleep($delayMs * 1000);
+        }
+
+        // Server never responded, but don't throw - let the test fail with a better error
+    }
+
+    /**
+     * Make a request to prime the frontend server's HTTP layer.
+     *
+     * Note: This only fetches the HTML shell. Full module compilation
+     * in dev servers like Vite happens when the browser requests JS files.
+     * Use the warmup() option on FrontendDefinition for additional delay.
+     */
+    private function warmupRequest(): void
+    {
+        $url = $this->definition->url;
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_CONNECTTIMEOUT => 5,
+        ]);
+
+        curl_exec($ch);
+        curl_close($ch);
     }
 
     /**
