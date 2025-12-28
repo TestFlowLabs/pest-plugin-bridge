@@ -218,3 +218,112 @@ If your API and frontend branches should match:
 ```
 
 This checks out the same branch name in the frontend repo (falls back to default if it doesn't exist).
+
+## Multiple Frontends
+
+Some projects have multiple frontend applications (web app, admin dashboard, mobile PWA). The same pattern extends naturally.
+
+### Workflow Configuration
+
+```yaml
+on:
+  workflow_dispatch:
+    inputs:
+      frontend_web_branch:
+        description: 'Web app branch'
+        default: 'develop'
+      frontend_admin_branch:
+        description: 'Admin dashboard branch'
+        default: 'develop'
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout Web Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-web
+          path: frontend-web
+          ref: ${{ inputs.frontend_web_branch || 'develop' }}
+
+      - name: Checkout Admin Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-admin
+          path: frontend-admin
+          ref: ${{ inputs.frontend_admin_branch || 'develop' }}
+
+      # ... setup steps ...
+
+      - name: Install web frontend dependencies
+        working-directory: frontend-web
+        run: npm ci
+
+      - name: Install admin frontend dependencies
+        working-directory: frontend-admin
+        run: npm ci
+```
+
+### Pest Configuration
+
+Configure multiple Bridge instances for different frontends:
+
+```php
+// backend/tests/Pest.php
+use TestFlowLabs\PestPluginBridge\Bridge;
+
+// Web app on port 3000
+Bridge::make('web', 'http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend-web');
+
+// Admin dashboard on port 3001
+Bridge::make('admin', 'http://localhost:3001')
+    ->serve('npm run dev -- --port 3001', cwd: '../frontend-admin');
+```
+
+Use named instances in tests:
+
+```php
+test('user can access web dashboard', function () {
+    $this->bridge('/dashboard', 'web')
+        ->assertSee('Welcome');
+});
+
+test('admin can access admin panel', function () {
+    $this->bridge('/admin', 'admin')
+        ->assertSee('Admin Panel');
+});
+```
+
+### Triggering with gh CLI
+
+```bash
+gh workflow run browser-tests.yml \
+  -f backend_branch=feature/api-changes \
+  -f frontend_web_branch=develop \
+  -f frontend_admin_branch=feature/new-admin-ui \
+  -f test_group=smoke
+```
+
+### Directory Structure
+
+```
+$GITHUB_WORKSPACE/
+├── backend/           # Laravel API
+├── frontend-web/      # Main web application
+└── frontend-admin/    # Admin dashboard
+```
+
+::: tip Consistent Naming
+Use descriptive directory names (`frontend-web`, `frontend-admin`) instead of generic names when working with multiple frontends.
+:::
