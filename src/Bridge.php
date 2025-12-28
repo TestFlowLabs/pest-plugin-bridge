@@ -133,7 +133,7 @@ final class Bridge
     /**
      * Reset all configuration.
      *
-     * Clears frontend URLs, stops all servers, and removes any HTTP fakes.
+     * Clears frontend URLs, stops all servers, and removes all mocks/fakes.
      */
     public static function reset(): void
     {
@@ -141,6 +141,7 @@ final class Bridge
         self::$frontends  = [];
         FrontendManager::reset();
         self::clearFakes();
+        self::clearBrowserMocks();
     }
 
     /**
@@ -194,6 +195,52 @@ final class Bridge
     public static function hasFakes(): bool
     {
         return file_exists(self::getFakeConfigPath());
+    }
+
+    /**
+     * Register fake HTTP responses for browser-level API calls.
+     *
+     * This enables mocking fetch() and XMLHttpRequest calls made directly
+     * from JavaScript in the browser (frontend → external API).
+     *
+     * Unlike fake() which mocks Laravel backend HTTP calls, mockBrowser()
+     * intercepts requests made by the frontend JavaScript before they
+     * reach the network.
+     *
+     * Usage:
+     * ```php
+     * Bridge::mockBrowser([
+     *     'https://api.weather.com/*' => [
+     *         'status' => 200,
+     *         'body' => ['temp' => 25, 'city' => 'Istanbul'],
+     *     ],
+     * ]);
+     *
+     * $this->bridge('/weather-page')
+     *     ->assertSee('25°C');
+     * ```
+     *
+     * @param  array<string, array{status?: int, body?: mixed, headers?: array<string, string>}>  $mocks
+     */
+    public static function mockBrowser(array $mocks): void
+    {
+        BrowserMockStore::set($mocks);
+    }
+
+    /**
+     * Clear all browser-level HTTP mocks.
+     */
+    public static function clearBrowserMocks(): void
+    {
+        BrowserMockStore::clear();
+    }
+
+    /**
+     * Check if any browser mocks are registered.
+     */
+    public static function hasBrowserMocks(): bool
+    {
+        return BrowserMockStore::hasMocks();
     }
 
     /**
