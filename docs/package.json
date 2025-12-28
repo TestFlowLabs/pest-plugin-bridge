@@ -1,7 +1,7 @@
 {
   "name": "pest-plugin-bridge-docs",
   "version": "1.0.0",
-  "description": "Documentation for Pest Plugin Bridge",
+  "description": "Documentation for Pest Bridge Plugin",
   "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev",

@@ -1,6 +1,6 @@
-# Contributing to Pest Plugin Bridge
+# Contributing to Pest Bridge Plugin
 
-Thank you for considering contributing to Pest Plugin Bridge! This document outlines the process for contributing to this project.
+Thank you for considering contributing to Pest Bridge Plugin! This document outlines the process for contributing to this project.
 
 ## Development Setup
 

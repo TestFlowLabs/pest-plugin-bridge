@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial release of Pest Plugin Bridge
+- Initial release of Pest Bridge Plugin
 - `Bridge::setDefault()` for configuring default frontend URL
 - `Bridge::frontend()` for configuring named frontends
 - `bridge()` method for visiting external frontend URLs in tests

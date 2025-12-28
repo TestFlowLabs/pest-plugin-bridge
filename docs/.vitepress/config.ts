@@ -1,7 +1,7 @@
 import { defineConfig } from 'vitepress'
 
 export default defineConfig({
-  title: 'Pest Plugin Bridge',
+  title: 'Pest Bridge Plugin',
   description: 'Browser testing for external frontend applications with Pest PHP',
 
   markdown: {

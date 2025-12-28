@@ -1,6 +1,6 @@
 # Assertions
 
-Pest Plugin Bridge inherits all assertions from Pest's browser plugin. Here's a comprehensive reference.
+Pest Bridge Plugin inherits all assertions from Pest's browser plugin. Here's a comprehensive reference.
 
 ## Text Assertions
 

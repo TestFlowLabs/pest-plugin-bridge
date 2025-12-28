@@ -1,6 +1,6 @@
 # Limitations & Known Issues
 
-Understanding what Pest Plugin Bridge can and cannot do helps you choose the right tool and avoid surprises.
+Understanding what Pest Bridge Plugin can and cannot do helps you choose the right tool and avoid surprises.
 
 ## Architectural Limitations
 
@@ -160,7 +160,7 @@ Screenshot/video capture relies on pest-plugin-browser configuration.
 
 ## Comparison with Alternatives
 
-| Feature | Pest Plugin Bridge | Laravel Dusk | Cypress | Playwright |
+| Feature | Pest Bridge Plugin | Laravel Dusk | Cypress | Playwright |
 |---------|-------------------|--------------|---------|------------|
 | External frontend | ✅ Native | ❌ No | ✅ Yes | ✅ Yes |
 | PHP test code | ✅ Yes | ✅ Yes | ❌ JS only | ❌ JS/TS |

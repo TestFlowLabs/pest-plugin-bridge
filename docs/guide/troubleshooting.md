@@ -1,6 +1,6 @@
 # Troubleshooting
 
-Common issues and their solutions when using Pest Plugin Bridge.
+Common issues and their solutions when using Pest Bridge Plugin.
 
 ## Installation Issues
 

@@ -1,4 +1,4 @@
-# Pest Plugin Bridge
+# Pest Bridge Plugin
 
 [![Tests](https://github.com/TestFlowLabs/pest-plugin-bridge/actions/workflows/tests.yml/badge.svg)](https://github.com/TestFlowLabs/pest-plugin-bridge/actions)
 [![License](https://img.shields.io/github/license/TestFlowLabs/pest-plugin-bridge)](LICENSE)

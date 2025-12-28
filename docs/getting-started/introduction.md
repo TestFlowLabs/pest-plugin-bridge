@@ -1,6 +1,6 @@
 # Introduction
 
-Pest Plugin Bridge extends [Pest's browser testing capabilities](https://pestphp.com/docs/browser-testing) to work with **external frontend applications** running on separate servers.
+Pest Bridge Plugin extends [Pest's browser testing capabilities](https://pestphp.com/docs/browser-testing) to work with **external frontend applications** running on separate servers.
 
 ## When Do You Need This?
 

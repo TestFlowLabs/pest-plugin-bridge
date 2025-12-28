@@ -1,4 +1,4 @@
-# Pest Plugin Bridge
+# Pest Bridge Plugin
 
 A Pest plugin for browser testing external frontend applications from Laravel.
 

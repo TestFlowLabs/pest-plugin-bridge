@@ -1,6 +1,6 @@
 # React Example
 
-This example demonstrates testing a React application (with Vite) using Pest Plugin Bridge.
+This example demonstrates testing a React application (with Vite) using Pest Bridge Plugin.
 
 ## Project Structure
 

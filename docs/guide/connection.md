@@ -4,7 +4,7 @@ Understanding how the plugin connects your Laravel backend with external fronten
 
 ## The Testing Triangle
 
-When you run browser tests with Pest Plugin Bridge, three components interact:
+When you run browser tests with Pest Bridge Plugin, three components interact:
 
 <TestFlowDiagram />
 
@@ -312,7 +312,7 @@ pest()->extends(TestCase::class)
 #### Do I Need a Separate .env File?
 
 ::: tip No Separate .env Needed
-Unlike Laravel Dusk (which ran a separate PHP process for the server), Pest Plugin Bridge uses pest-plugin-browser which runs Laravel **in-process** via amphp. You don't need a separate `.env.dusk.local` file.
+Unlike Laravel Dusk (which ran a separate PHP process for the server), Pest Bridge Plugin uses pest-plugin-browser which runs Laravel **in-process** via amphp. You don't need a separate `.env.dusk.local` file.
 :::
 
 Configure your test database in `phpunit.xml` - this works for both unit and browser tests:

@@ -2,7 +2,7 @@
 
 ## Requirements
 
-Before installing Pest Plugin Bridge, ensure you have:
+Before installing Pest Bridge Plugin, ensure you have:
 
 | Requirement | Version |
 |-------------|---------|

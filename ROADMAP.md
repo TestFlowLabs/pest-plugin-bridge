@@ -1,6 +1,6 @@
 # Roadmap
 
-Ideas and potential improvements for Pest Plugin Bridge. This is not a commitment to implement these features, but a collection of possibilities.
+Ideas and potential improvements for Pest Bridge Plugin. This is not a commitment to implement these features, but a collection of possibilities.
 
 ## Documentation Enhancements
 

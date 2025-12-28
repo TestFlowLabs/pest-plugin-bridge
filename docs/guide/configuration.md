@@ -1,6 +1,6 @@
 # Configuration
 
-Pest Plugin Bridge uses the `Bridge` class for programmatic configuration of bridged frontend URLs.
+Pest Bridge Plugin uses the `Bridge` class for programmatic configuration of bridged frontend URLs.
 
 ## Global Configuration
 
