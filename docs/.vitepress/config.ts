@@ -38,7 +38,10 @@ export default defineConfig({
             { text: 'Connection Architecture', link: '/guide/connection' },
             { text: 'Writing Tests', link: '/guide/writing-tests' },
             { text: 'Assertions', link: '/guide/assertions' },
-            { text: 'Best Practices', link: '/guide/best-practices' }
+            { text: 'Best Practices', link: '/guide/best-practices' },
+            { text: 'Performance', link: '/guide/performance' },
+            { text: 'Troubleshooting', link: '/guide/troubleshooting' },
+            { text: 'Limitations', link: '/guide/limitations' }
           ]
         },
         {
