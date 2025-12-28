@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-use TestFlowLabs\PestPluginBridge\Configuration;
+use TestFlowLabs\PestPluginBridge\Bridge;
 
 /**
  * Integration tests for browser functionality.
  *
  * These tests use actual browser automation via Playwright
- * to verify the visitExternal() method works correctly.
+ * to verify the bridge() method works correctly.
  */
 
 /**
@@ -87,7 +87,7 @@ beforeAll(function () use (&$serverPid, $serverPort): void {
         throw new RuntimeException('Fixture server did not start in time');
     }
 
-    Configuration::setExternalUrl("http://localhost:{$serverPort}");
+    Bridge::setDefault("http://localhost:{$serverPort}");
 });
 
 afterAll(function () use (&$serverPid): void {
@@ -95,16 +95,16 @@ afterAll(function () use (&$serverPid): void {
         stopFixtureServer($serverPid);
     }
 
-    Configuration::reset();
+    Bridge::reset();
 });
 
 test('can visit external page and see content', function (): void {
-    $this->visitExternal('/index.html')
+    $this->bridge('/index.html')
         ->assertSee('Welcome to Test App');
 })->group('browser');
 
 test('can interact with form elements', function (): void {
-    $this->visitExternal('/index.html')
+    $this->bridge('/index.html')
         ->fill('[data-testid="email"]', 'test@example.com')
         ->fill('[data-testid="password"]', 'secret123')
         ->click('[data-testid="login-button"]')
@@ -112,18 +112,18 @@ test('can interact with form elements', function (): void {
 })->group('browser');
 
 test('can verify page title', function (): void {
-    $this->visitExternal('/index.html')
+    $this->bridge('/index.html')
         ->assertTitle('Test App');
 })->group('browser');
 
 test('can verify elements with data-testid', function (): void {
-    $this->visitExternal('/index.html')
+    $this->bridge('/index.html')
         ->assertSeeIn('[data-testid="title"]', 'Welcome to Test App')
         ->assertSeeIn('[data-testid="description"]', 'This is a simple test application');
 })->group('browser');
 
 test('shows error message when fields are empty', function (): void {
-    $this->visitExternal('/index.html')
+    $this->bridge('/index.html')
         ->click('[data-testid="login-button"]')
         ->assertSee('Please fill in all fields');
 })->group('browser');
