@@ -12,10 +12,7 @@ export default defineConfig({
     logo: '/logo.svg',
 
     nav: [
-      { text: 'Guide', link: '/getting-started/introduction' },
-      { text: 'CI/CD', link: '/ci-cd/introduction' },
-      { text: 'API', link: '/api/configuration' },
-      { text: 'Examples', link: '/examples/vue-vite' },
+      { text: 'Docs', link: '/getting-started/introduction' },
       {
         text: 'v1.0.0',
         items: [
@@ -50,6 +47,7 @@ export default defineConfig({
             { text: 'Introduction', link: '/ci-cd/introduction' },
             { text: 'Basic Setup', link: '/ci-cd/basic-setup' },
             { text: 'Multi-Repository', link: '/ci-cd/multi-repo' },
+            { text: 'Manual Triggers', link: '/ci-cd/manual-trigger' },
             { text: 'SQLite Database', link: '/ci-cd/sqlite' },
             { text: 'MySQL Database', link: '/ci-cd/mysql' },
             { text: 'Caching', link: '/ci-cd/caching' },

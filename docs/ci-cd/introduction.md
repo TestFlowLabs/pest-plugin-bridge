@@ -59,6 +59,7 @@ Each page is a **standalone module** you can combine:
 |------|--------------|
 | [Basic Setup](./basic-setup) | Minimal working workflow (monorepo, no database) |
 | [Multi-Repository](./multi-repo) | Separate frontend repository checkout |
+| [Manual Triggers](./manual-trigger) | Run tests manually with branch/group selection |
 | [SQLite Database](./sqlite) | File-based SQLite configuration |
 | [MySQL Database](./mysql) | MySQL service or external connection |
 | [Caching](./caching) | Speed up CI with dependency caching |
@@ -144,6 +145,7 @@ your-organization/
 
 1. **Start with [Basic Setup](./basic-setup)** - Get a minimal workflow running
 2. **Add [Multi-Repository](./multi-repo)** if you have separate repos
-3. **Add [SQLite](./sqlite) or [MySQL](./mysql)** for database tests
-4. **Add [Caching](./caching)** to speed up builds
-5. **Add [Debugging](./debugging)** for failure artifacts
+3. **Add [Manual Triggers](./manual-trigger)** for on-demand testing with branch selection
+4. **Add [SQLite](./sqlite) or [MySQL](./mysql)** for database tests
+5. **Add [Caching](./caching)** to speed up builds
+6. **Add [Debugging](./debugging)** for failure artifacts
