@@ -255,6 +255,167 @@ test('shows loading indicator', function () {
 });
 ```
 
+## Vue/Nuxt Framework-Specific Best Practices
+
+When testing Vue, Nuxt, or other reactive frontends, follow these additional guidelines.
+
+### Understanding the `fill()` vs `typeSlowly()` Problem
+
+::: warning Why This Matters
+This is not a bug — it's a fundamental difference in how Playwright methods interact with JavaScript frameworks.
+:::
+
+**Playwright has two approaches for entering text:**
+
+| Method | Playwright Equivalent | What It Does | Framework Reactivity |
+|--------|----------------------|--------------|---------------------|
+| `fill()` | `locator.fill()` | Sets DOM `value` property directly | ❌ No events fired |
+| `typeSlowly()` | `locator.pressSequentially()` | Simulates keydown → input → keyup for each character | ✅ Full event chain |
+
+**Vue's `v-model` listens for `input` events** to update its reactive state. When `fill()` sets the DOM value directly, no `input` event fires, so Vue never sees the change.
+
+```
+fill('test')           → DOM: value="test"  → Vue state: ""     ❌
+typeSlowly('test', 20) → DOM: value="test"  → Vue state: "test" ✅
+                          ↑ keydown/input/keyup events fired
+```
+
+This applies to **all reactive frameworks**: Vue, React, Angular, Svelte — any framework that relies on input events for data binding.
+
+### Use `typeSlowly()` Instead of `fill()` for Reactive Forms
+
+Vue's `v-model` directive doesn't sync with Playwright's `fill()` method because it sets the DOM value directly without triggering proper input events.
+
+```php
+// ❌ Bad - Vue v-model won't see the value
+$this->bridge('/login')
+    ->fill('[data-testid="email"]', 'user@example.com')
+    ->click('[data-testid="login-button"]');
+
+// ✅ Good - Triggers proper input events for Vue reactivity
+$this->bridge('/login')
+    ->typeSlowly('[data-testid="email"]', 'user@example.com', 20)
+    ->typeSlowly('[data-testid="password"]', 'password', 20)
+    ->click('[data-testid="login-button"]');
+```
+
+### Click First Input Before Typing
+
+There's a timing issue where the first few characters can get lost when typing immediately after page load:
+
+```php
+// ❌ Bad - First characters may be lost
+$this->bridge('/register')
+    ->typeSlowly('input#name', 'TestUser', 30);  // Might become "User"
+
+// ✅ Good - Click focuses the input and ensures readiness
+$this->bridge('/register')
+    ->waitForEvent('networkidle')
+    ->click('input#name')           // Focus first
+    ->typeSlowly('input#name', 'TestUser', 30);  // Full "TestUser"
+```
+
+### Use `waitForEvent('networkidle')` for API Calls
+
+Instead of arbitrary waits, use network idle to wait for API calls to complete:
+
+```php
+// ❌ Bad - Arbitrary wait may be too short or too long
+->click('[data-testid="submit"]')
+->wait(3)
+->assertPathContains('/dashboard');
+
+// ✅ Good - Waits until network is idle
+->click('[data-testid="submit"]')
+->waitForEvent('networkidle')
+->assertPathContains('/dashboard');
+```
+
+### Don't Use RefreshDatabase Trait
+
+The `RefreshDatabase` trait wraps tests in a database transaction, which creates isolation that prevents seeing changes made by the external server:
+
+```php
+// tests/Pest.php
+
+// ❌ Bad - External server writes won't be visible
+pest()->extends(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Browser');
+
+// ✅ Good - No transaction isolation
+pest()->extends(TestCase::class)
+    ->in('Browser');
+```
+
+### Verify Results Via UI Instead of Database
+
+Since database isolation doesn't work with external servers, verify results through UI assertions:
+
+```php
+// ❌ Bad - Database check won't see external server's writes
+expect(User::where('email', $email)->exists())->toBeTrue();
+
+// ✅ Good - Verify via UI
+->assertPathContains('/dashboard')
+->assertSee('Welcome')
+->assertSee($email);
+```
+
+### Use Unique Test Data
+
+Without database refresh, use timestamps or unique IDs to avoid conflicts:
+
+```php
+// ❌ Bad - May conflict with previous test runs
+$email = 'test@example.com';
+
+// ✅ Good - Unique for each test run
+$email = 'test'.time().'@example.com';
+```
+
+### Complete Working Pattern for Vue/Nuxt
+
+```php
+it('can register a new user', function () {
+    $email = 'register'.time().'@example.com';
+
+    $this->bridge('/register')
+        ->waitForEvent('networkidle')     // Wait for page load
+        ->click('input#name')              // Focus first input
+        ->typeSlowly('input#name', 'NewUser', 30)
+        ->typeSlowly('input#email', $email, 20)
+        ->typeSlowly('input#password', 'password123', 20)
+        ->typeSlowly('input#password_confirmation', 'password123', 20)
+        ->click('button[type="submit"]')
+        ->waitForEvent('networkidle')     // Wait for API call
+        ->assertPathContains('/dashboard')
+        ->assertSee('Welcome');
+});
+```
+
+## Troubleshooting Common Issues
+
+### Form Submits Empty Values
+- **Cause:** Vue's v-model not syncing with `fill()`
+- **Solution:** Use `typeSlowly()` instead
+
+### First Characters Lost When Typing
+- **Cause:** Page not fully ready for input
+- **Solution:** Add `->click('input#field')` before first `typeSlowly()`
+
+### Database Assertions Fail But UI Shows Success
+- **Cause:** RefreshDatabase transaction isolation
+- **Solution:** Don't use RefreshDatabase; use UI assertions
+
+### CSRF Token Mismatch (419 Error)
+- **Cause:** Laravel's `statefulApi()` middleware
+- **Solution:** Remove from `bootstrap/app.php` for token-based auth
+
+### Tests Hang or Timeout
+- **Cause:** Waiting for something that never happens
+- **Solution:** Use `waitForEvent('networkidle')` instead of fixed `wait()`
+
 ## Summary
 
 | Practice | Why |
@@ -265,3 +426,7 @@ test('shows loading indicator', function () {
 | Group tests | Better organization and selective running |
 | Debug with headed mode | See what's happening |
 | Consider CI | Ensure tests work in headless mode |
+| Use `typeSlowly()` for Vue | Vue's v-model needs proper input events |
+| Click before first type | Prevents character loss on page load |
+| Use `waitForEvent('networkidle')` | Better than arbitrary waits for API calls |
+| Skip RefreshDatabase | Transaction isolation breaks external server tests |
