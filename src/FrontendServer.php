@@ -7,6 +7,8 @@ namespace TestFlowLabs\PestPluginBridge;
 use RuntimeException;
 use Pest\Browser\ServerManager;
 use Symfony\Component\Process\Process;
+use TestFlowLabs\PestPluginBridge\Http\CurlHttpClient;
+use TestFlowLabs\PestPluginBridge\Http\HttpClientInterface;
 
 /**
  * Manages the lifecycle of a frontend development server.
@@ -20,6 +22,7 @@ final class FrontendServer
 
     public function __construct(
         private readonly FrontendDefinition $definition,
+        private readonly HttpClientInterface $httpClient = new CurlHttpClient(),
     ) {}
 
     /**
@@ -175,16 +178,7 @@ final class FrontendServer
         $url = $this->definition->url;
 
         for ($i = 0; $i < $maxAttempts; $i++) {
-            $ch = curl_init($url);
-            curl_setopt_array($ch, [
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_TIMEOUT        => 1,
-                CURLOPT_CONNECTTIMEOUT => 1,
-                CURLOPT_NOBODY         => true,
-            ]);
-
-            curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $httpCode = $this->httpClient->check($url, timeout: 1);
 
             if ($httpCode > 0) {
                 // Server is responding, now warm it up with a full page request
@@ -208,16 +202,7 @@ final class FrontendServer
      */
     private function warmupRequest(): void
     {
-        $url = $this->definition->url;
-
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 10,
-            CURLOPT_CONNECTTIMEOUT => 5,
-        ]);
-
-        curl_exec($ch);
+        $this->httpClient->get($this->definition->url, timeout: 10);
     }
 
     /**
