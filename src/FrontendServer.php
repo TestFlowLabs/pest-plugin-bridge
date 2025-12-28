@@ -130,7 +130,7 @@ final class FrontendServer
 
         // Merge with existing environment, keeping only string values
         /** @var array<string, string> $env */
-        $env = array_filter($_ENV, 'is_string');
+        $env = array_filter($_ENV, is_string(...));
 
         return array_merge($env, $apiVariables);
     }
