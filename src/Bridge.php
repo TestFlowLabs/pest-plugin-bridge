@@ -7,9 +7,9 @@ namespace TestFlowLabs\PestPluginBridge;
 use InvalidArgumentException;
 
 /**
- * Configuration registry for external frontend URLs.
+ * Configuration registry for bridged frontend URLs.
  *
- * Supports a default frontend and multiple named frontends for testing
+ * Supports a default frontend and multiple named "bridged frontends" for testing
  * applications with multiple frontend services.
  */
 final class Bridge
@@ -20,39 +20,51 @@ final class Bridge
     private static array $frontends = [];
 
     /**
-     * Set the default frontend URL.
+     * Add a bridged frontend.
+     *
+     * When called without a name, sets the default frontend.
+     * When called with a name, adds a named bridged frontend.
+     *
+     * @param  string  $url  The frontend URL
+     * @param  string|null  $name  Optional name for the bridged frontend
      *
      * @throws InvalidArgumentException If the URL is invalid
      */
-    public static function setDefault(string $url): FrontendDefinition
+    public static function add(string $url, ?string $name = null): FrontendDefinition
     {
         self::validateUrl($url);
-        self::$defaultUrl = $url;
 
-        $definition = new FrontendDefinition($url);
+        if ($name === '') {
+            throw new InvalidArgumentException('Frontend name cannot be empty');
+        }
+
+        if ($name === null) {
+            self::$defaultUrl = $url;
+            $definition       = new FrontendDefinition($url);
+        } else {
+            self::$frontends[$name] = $url;
+            $definition             = new FrontendDefinition($url, $name);
+        }
+
         FrontendManager::instance()->register($definition);
 
         return $definition;
     }
 
     /**
-     * Add a named frontend.
+     * Register a child frontend (called internally by FrontendDefinition::child()).
      *
-     * @throws InvalidArgumentException If the name is empty or URL is invalid
+     * @internal
      */
-    public static function frontend(string $name, string $url): FrontendDefinition
+    public static function registerChild(string $parentUrl, string $path, string $name): FrontendDefinition
     {
-        if ($name === '') {
-            throw new InvalidArgumentException('Frontend name cannot be empty');
-        }
+        $childUrl = rtrim($parentUrl, '/').'/'.ltrim($path, '/');
 
-        self::validateUrl($url);
-        self::$frontends[$name] = $url;
+        self::$frontends[$name] = $childUrl;
 
-        $definition = new FrontendDefinition($url, $name);
-        FrontendManager::instance()->register($definition);
-
-        return $definition;
+        // Child definitions don't get registered with FrontendManager
+        // They share the parent's server process
+        return new FrontendDefinition($childUrl, $name);
     }
 
     /**
@@ -67,7 +79,7 @@ final class Bridge
         if ($name === null) {
             if (self::$defaultUrl === null) {
                 throw new InvalidArgumentException(
-                    'Default frontend not configured. Call Bridge::setDefault() in tests/Pest.php'
+                    'Default frontend not configured. Call Bridge::add() in tests/Pest.php'
                 );
             }
 
@@ -76,7 +88,7 @@ final class Bridge
 
         if (!isset(self::$frontends[$name])) {
             throw new InvalidArgumentException(
-                "Frontend '{$name}' not configured. Call Bridge::frontend('{$name}', \$url) in tests/Pest.php"
+                "Frontend '{$name}' not configured. Call Bridge::add(\$url, '{$name}') in tests/Pest.php"
             );
         }
 

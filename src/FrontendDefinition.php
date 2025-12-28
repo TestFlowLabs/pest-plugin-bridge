@@ -192,4 +192,29 @@ final class FrontendDefinition
     {
         return $this->customEnvVars;
     }
+
+    /**
+     * Register a child frontend at a sub-path.
+     *
+     * Child frontends share the same server process as the parent.
+     * This is useful when a single frontend serves multiple named sections
+     * at different URL paths.
+     *
+     * Example:
+     * ```php
+     * Bridge::add('http://localhost:3001', 'admin')
+     *     ->child('/analytics', 'analytics')
+     *     ->child('/reports', 'reports')
+     *     ->serve('npm run dev', cwd: '../admin-frontend');
+     * ```
+     *
+     * @param  string  $path  The sub-path (e.g., '/analytics')
+     * @param  string  $name  The name to register this child as
+     */
+    public function child(string $path, string $name): self
+    {
+        Bridge::registerChild($this->url, $path, $name);
+
+        return $this;
+    }
 }
