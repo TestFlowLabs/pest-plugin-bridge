@@ -91,6 +91,43 @@ Bridge::setDefault('http://localhost:3000')
 
 Servers are stopped automatically via shutdown handler.
 
+### Vite Cold-Start Handling
+
+**Important:** When using `serve()` with Vite-based frontends, the first page load triggers on-demand module compilation. For large apps, this can take 3-5+ seconds.
+
+```php
+// Vite reports "ready" when HTTP server starts
+// But actual JS compilation happens on first browser request!
+
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready');
+
+// The bridge() method uses a 30s timeout by default to handle this
+$this->bridge('/')->assertPathIs('/');  // Works with cold-start
+```
+
+**What happens:**
+1. `npm run dev` starts → Vite outputs "VITE ready in 500ms"
+2. HTTP check confirms server responds → just the HTML shell
+3. Test navigates in Playwright → browser requests JS modules
+4. Vite compiles modules on-demand → takes 3-5+ seconds
+5. Page becomes interactive
+
+**Why manual start seems faster:** When you manually start the frontend and reload the page in your browser, you trigger the compilation. By the time tests run, modules are cached.
+
+**Options for additional control:**
+```php
+// Add extra warmup delay after server is ready (optional)
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready')
+    ->warmup(2000);  // Additional 2s delay
+
+// Override timeout per navigation
+$this->bridge('/', options: ['timeout' => 60000]);  // 60s timeout
+```
+
 ### BridgeTrait
 
 Provides the `bridge()` method for tests:
@@ -227,7 +264,7 @@ composer test:types     # Type coverage
 |------|---------|
 | `src/Bridge.php` | Static API for configuration |
 | `src/BridgeTrait.php` | Provides `bridge()` method |
-| `src/FrontendDefinition.php` | Fluent builder (`->serve()`, `->readyWhen()`) |
+| `src/FrontendDefinition.php` | Fluent builder (`->serve()`, `->readyWhen()`, `->warmup()`) |
 | `src/FrontendManager.php` | Manages all server lifecycles |
 | `src/FrontendServer.php` | Individual server process |
 | `src/Autoload.php` | Plugin bootstrap, shutdown handler |

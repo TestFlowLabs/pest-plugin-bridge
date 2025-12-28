@@ -375,10 +375,23 @@ use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
 Bridge::setDefault('http://localhost:5173')
-    ->serve('npm run dev', cwd: '../frontend');
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready');
 
 pest()->extends(TestCase::class)->in('Browser');
 ```
+
+::: tip Cold-Start Handling
+Vite compiles JavaScript modules on-demand when the browser first requests them. For large applications, this can take 3-5+ seconds. The `bridge()` method uses a 30-second timeout by default to handle this automatically.
+
+For very large apps, add extra warmup time:
+```php
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready')
+    ->warmup(3000);  // Additional 3s warmup
+```
+:::
 
 Then simply run:
 

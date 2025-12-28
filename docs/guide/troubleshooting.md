@@ -34,6 +34,38 @@ npx playwright install-deps chromium
 
 ## Frontend Server Issues
 
+### Vite Cold-Start Timeout
+
+**Symptom**: Tests pass when frontend is started manually, but timeout when using `serve()`
+
+**Cause**: Vite's on-demand module compilation. When Vite starts, it reports "ready" immediately, but JavaScript modules are compiled on first browser request. For large applications, this takes 3-5+ seconds.
+
+**What happens:**
+1. `npm run dev` starts → Vite outputs "VITE ready in 500ms"
+2. Bridge detects "ready" pattern → server is accepting connections
+3. Playwright navigates to page → browser requests JS modules
+4. Vite compiles modules on-demand → takes 3-5+ seconds
+5. Default timeout expires before page is interactive
+
+**Why manual start works**: When you start the frontend manually and refresh the page in your browser, you trigger the compilation. Modules are cached before tests run.
+
+**Solution**: The `bridge()` method uses a 30-second timeout by default to handle cold-start. If you need more time:
+
+```php
+// Override timeout per navigation
+$this->bridge('/', options: ['timeout' => 60000]);  // 60s timeout
+
+// Or add extra warmup delay after server is ready
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready')
+    ->warmup(2000);  // Additional 2s delay
+```
+
+::: info Why Not Just Wait for Network Idle?
+Vite's HMR WebSocket keeps a persistent connection open, preventing the network from ever reaching "idle" state. The extended timeout approach handles this automatically.
+:::
+
 ### Server Doesn't Start
 
 **Symptom**: Tests hang waiting for server, or "Frontend server failed to start" error
