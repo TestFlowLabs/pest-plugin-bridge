@@ -56,26 +56,12 @@ export default defineConfig({
           ]
         },
         {
-          text: 'API Reference',
-          items: [
-            { text: 'Configuration', link: '/api/configuration' },
-            { text: 'BridgeTrait', link: '/api/bridge-trait' }
-          ]
-        },
-        {
           text: 'Examples',
           items: [
             { text: 'Vue + Vite', link: '/examples/vue-vite' },
             { text: 'Nuxt 3', link: '/examples/nuxt' },
             { text: 'React', link: '/examples/react' },
             { text: 'Authentication Flow', link: '/examples/authentication' }
-          ]
-        },
-        {
-          text: 'Playground',
-          items: [
-            { text: 'Setup', link: '/playground/setup' },
-            { text: 'Running Tests', link: '/playground/running-tests' }
           ]
         }
       ]
