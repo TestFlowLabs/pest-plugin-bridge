@@ -12,24 +12,27 @@ The answer is simple: **GitHub Actions can checkout multiple repositories in a s
 
 ```yaml
 steps:
-  # 1. Checkout your API repo (where tests live)
+  # 1. Checkout your API repo into ./backend
   - uses: actions/checkout@v4
+    with:
+      path: backend
 
-  # 2. Checkout your frontend repo into a subdirectory
+  # 2. Checkout your frontend repo into ./frontend
   - uses: actions/checkout@v4
     with:
       repository: your-org/frontend-repo
-      path: frontend  # Frontend ends up in ./frontend
+      path: frontend
 ```
 
 After this, your directory structure in CI looks like:
 
 ```
-runner/
-├── app/                    # Your Laravel API (main checkout)
-├── tests/Browser/
-├── composer.json
-└── frontend/               # Frontend repo (second checkout)
+$GITHUB_WORKSPACE/
+├── backend/                # Your Laravel API
+│   ├── app/
+│   ├── tests/Browser/
+│   └── composer.json
+└── frontend/               # Your frontend repo
     ├── src/
     └── package.json
 ```
@@ -37,9 +40,9 @@ runner/
 Then configure Bridge to use the frontend:
 
 ```php
-// tests/Pest.php
+// backend/tests/Pest.php
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: 'frontend');
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 **That's it.** Both projects are now in the same runner, and pest-plugin-bridge handles starting/stopping servers automatically.

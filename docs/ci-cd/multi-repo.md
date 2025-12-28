@@ -4,20 +4,27 @@ When your frontend lives in a separate repository, you need to check it out duri
 
 ## The Core Concept
 
-GitHub Actions' `actions/checkout` can checkout **any repository**, not just the one triggering the workflow. Use the `repository` parameter to specify which repo, and `path` to specify where it goes:
+GitHub Actions' `actions/checkout` can checkout **multiple repositories side by side**. Use the `path` parameter to specify the directory for each:
 
 ```yaml
-# Checkout frontend repo into ./frontend directory
-- uses: actions/checkout@v4
-  with:
-    repository: your-org/frontend-repo
-    path: frontend
+steps:
+  # Checkout API repo into ./backend
+  - uses: actions/checkout@v4
+    with:
+      path: backend
+
+  # Checkout frontend repo into ./frontend
+  - uses: actions/checkout@v4
+    with:
+      repository: your-org/frontend-repo
+      path: frontend
 ```
 
-This is the key to combining two repositories. The rest of this page covers the details.
+This creates a side-by-side structure in the runner. The rest of this page covers the details.
 
 ## Repository Structure
 
+**Your GitHub Organization:**
 ```
 your-organization/
 ├── api/                        # Laravel API repository
@@ -36,10 +43,22 @@ your-organization/
     └── nuxt.config.ts
 ```
 
+**After Checkout in CI Runner:**
+```
+$GITHUB_WORKSPACE/
+├── backend/                    # API repo (path: backend)
+│   ├── app/
+│   ├── tests/Browser/
+│   └── composer.json
+└── frontend/                   # Frontend repo (path: frontend)
+    ├── src/
+    └── package.json
+```
+
 ## Pest Configuration
 
 ```php
-// tests/Pest.php
+// backend/tests/Pest.php
 <?php
 
 use TestFlowLabs\PestPluginBridge\Bridge;
@@ -47,32 +66,33 @@ use Tests\TestCase;
 
 pest()->extends(TestCase::class)->in('Browser');
 
-// Frontend is checked out to 'frontend/' by GitHub Actions
+// Frontend is at ../frontend relative to backend
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: 'frontend');
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 ::: tip Path is Relative to Laravel Root
-The `cwd` path is relative to your Laravel project root. After checkout, the frontend is at `./frontend`.
+The `cwd` path is relative to your Laravel project root. Since both repos are side by side, use `../frontend` to go up one level and into the frontend directory.
 :::
 
 ## Checkout Snippet
 
-Add this to your workflow after the API checkout:
+Add both checkouts at the start of your workflow:
 
 ```yaml
 steps:
-  # Checkout API repository (this repo)
+  # Checkout API repository into ./backend
   - name: Checkout API
     uses: actions/checkout@v4
+    with:
+      path: backend
 
-  # Checkout Frontend repository
+  # Checkout Frontend repository into ./frontend
   - name: Checkout Frontend
     uses: actions/checkout@v4
     with:
       repository: your-org/frontend-repo
       path: frontend
-      token: ${{ secrets.GITHUB_TOKEN }}
 ```
 
 ## Private Repositories
@@ -129,17 +149,21 @@ on:
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout API
         uses: actions/checkout@v4
+        with:
+          path: backend
 
       - name: Checkout Frontend
         uses: actions/checkout@v4
         with:
           repository: your-org/frontend-repo
           path: frontend
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -163,7 +187,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Install frontend dependencies
-        run: cd frontend && npm ci
+        working-directory: frontend
+        run: npm ci
 
       - name: Prepare Laravel
         run: |
@@ -173,6 +198,10 @@ jobs:
       - name: Run browser tests
         run: ./vendor/bin/pest tests/Browser
 ```
+
+::: tip working-directory
+`defaults.run.working-directory: backend` sets the default directory for all `run` commands. For frontend commands, override with `working-directory: frontend`.
+:::
 
 ## Synchronizing Branches
 
