@@ -13,6 +13,7 @@ export default defineConfig({
 
     nav: [
       { text: 'Guide', link: '/getting-started/introduction' },
+      { text: 'CI/CD', link: '/ci-cd/introduction' },
       { text: 'API', link: '/api/configuration' },
       { text: 'Examples', link: '/examples/vue-vite' },
       {
@@ -40,8 +41,20 @@ export default defineConfig({
             { text: 'Connection Architecture', link: '/guide/connection' },
             { text: 'Writing Tests', link: '/guide/writing-tests' },
             { text: 'Assertions', link: '/guide/assertions' },
-            { text: 'Best Practices', link: '/guide/best-practices' },
-            { text: 'CI/CD Integration', link: '/guide/ci-cd' }
+            { text: 'Best Practices', link: '/guide/best-practices' }
+          ]
+        },
+        {
+          text: 'CI/CD',
+          items: [
+            { text: 'Introduction', link: '/ci-cd/introduction' },
+            { text: 'Basic Setup', link: '/ci-cd/basic-setup' },
+            { text: 'Multi-Repository', link: '/ci-cd/multi-repo' },
+            { text: 'SQLite Database', link: '/ci-cd/sqlite' },
+            { text: 'MySQL Database', link: '/ci-cd/mysql' },
+            { text: 'Caching', link: '/ci-cd/caching' },
+            { text: 'Debugging', link: '/ci-cd/debugging' },
+            { text: 'Advanced', link: '/ci-cd/advanced' }
           ]
         },
         {
