@@ -264,22 +264,76 @@ lsof -ti:8000 | xargs kill -9
 lsof -ti:3000 | xargs kill -9
 ```
 
-### Test Database Isolation
+### Database Configuration
 
-**Symptom**: Tests interfere with each other
+::: danger SQLite In-Memory Not Supported
+SQLite in-memory databases (`:memory:`) **do not work** with browser tests. Each database connection gets its own isolated in-memory database, so the frontend's API calls cannot see test data.
+:::
 
-**Note**: `RefreshDatabase` trait doesn't work with external server tests because transaction isolation prevents the external server from seeing database changes.
+::: warning RefreshDatabase Doesn't Work
+The `RefreshDatabase` trait uses database transactions for isolation. However, transaction data is only visible to the same connection. When your frontend makes API calls, those use separate database connections that cannot see uncommitted transaction data.
+:::
 
-**Solution**: Use unique test data and clean up manually:
+**Recommended Setup:**
+
+**1. Configure database in `phpunit.xml`** (recommended):
+
+```xml
+<phpunit>
+    <php>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <!-- Use file database for browser tests (not :memory:) -->
+        <env name="DB_DATABASE" value="database/database.sqlite"/>
+    </php>
+</phpunit>
+```
+
+**Or use `.env.testing`:**
+
+```ini
+# .env.testing
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+
+# Or use MySQL/PostgreSQL
+DB_CONNECTION=mysql
+DB_DATABASE=your_app_testing
+```
+
+**2. Use `DatabaseMigrations` or `DatabaseTruncation` instead:**
+
+```php
+// tests/Pest.php
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
+
+// Option A: Migrate fresh for each test (slower but clean)
+pest()->use(DatabaseMigrations::class)->in('Browser');
+
+// Option B: Truncate tables (faster)
+pest()->use(DatabaseTruncation::class)->in('Browser');
+```
+
+**3. Or use unique test data per test:**
+
 ```php
 test('user can register', function () {
-    $email = 'test'.time().'@example.com'; // Unique email
+    $email = 'test-'.Str::uuid().'@example.com';
 
     $this->bridge('/register')
         ->typeSlowly('[data-testid="email"]', $email, 20)
         // ...
 });
 ```
+
+**Why Dusk Used Separate .env.dusk:**
+
+Laravel Dusk traditionally used a separate `.env.dusk.local` file because of these same database isolation issues. With Pest Plugin Bridge, you have two options:
+
+1. **Use `.env.testing`** - Configure a persistent test database
+2. **Use unique data** - Generate unique identifiers for each test
+
+The key requirement is that your database must be accessible across multiple connections (ruling out in-memory SQLite and transaction-based isolation).
 
 ## Configuration Summary
 
@@ -295,6 +349,10 @@ Bridge::setDefault('http://localhost:3000');
 **`.env.testing`** (for Laravel itself):
 ```ini
 APP_URL=http://localhost:8000
+
+# IMPORTANT: Use file-based SQLite or real database (not :memory:)
+DB_CONNECTION=sqlite
+DB_DATABASE=/absolute/path/to/test.sqlite
 
 # Sanctum (if using SPA auth)
 SANCTUM_STATEFUL_DOMAINS=localhost:3000
