@@ -16,6 +16,12 @@ final class FrontendDefinition
     private ?string $workingDirectory = null;
 
     /**
+     * Warmup delay in milliseconds after server is ready.
+     * Useful for large frontends that need extra time to fully initialize.
+     */
+    private int $warmupDelayMs = 0;
+
+    /**
      * Default pattern covers most frontend dev servers:
      * - Nuxt: "Local: http://localhost:3000"
      * - Vite: "VITE ready in 500ms", "http://localhost:5173"
@@ -58,6 +64,22 @@ final class FrontendDefinition
     }
 
     /**
+     * Set a warmup delay after the server is ready.
+     *
+     * Large frontends may need extra time after reporting "ready"
+     * before they can handle page loads efficiently. This delay
+     * is applied after the ready pattern matches and HTTP is accessible.
+     *
+     * @param  int  $milliseconds  Delay in milliseconds (default: 0)
+     */
+    public function warmup(int $milliseconds): self
+    {
+        $this->warmupDelayMs = $milliseconds;
+
+        return $this;
+    }
+
+    /**
      * Check if this definition has a serve command.
      */
     public function hasServeCommand(): bool
@@ -87,5 +109,13 @@ final class FrontendDefinition
     public function getReadyPattern(): string
     {
         return $this->readyPattern;
+    }
+
+    /**
+     * Get the warmup delay in milliseconds.
+     */
+    public function getWarmupDelayMs(): int
+    {
+        return $this->warmupDelayMs;
     }
 }
