@@ -100,7 +100,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Install frontend dependencies
-        run: cd ../frontend && npm ci
+        working-directory: frontend
+        run: npm ci
 
       # ─────────────────────────────────────────────────────────────────
       # PREPARE LARAVEL
@@ -123,7 +124,7 @@ jobs:
 
 1. **`working-directory: backend`** - All commands run from the Laravel directory
 2. **Playwright must be installed** - `npx playwright install --with-deps chromium`
-3. **Frontend dependencies** - Install with `cd ../frontend && npm ci`
+3. **Frontend dependencies** - Install with `working-directory: frontend`
 4. **No database setup** - This workflow has no database configuration
 
 ## Adding More Features

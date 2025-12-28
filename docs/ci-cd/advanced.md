@@ -10,13 +10,25 @@ Test against multiple PHP versions:
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     strategy:
       fail-fast: false
       matrix:
         php: ['8.2', '8.3', '8.4']
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-repo
+          path: frontend
 
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
@@ -152,14 +164,15 @@ on:
 
 ```php
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: 'frontend');
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 For production build testing:
 
 ```yaml
 - name: Build frontend
-  run: cd frontend && npm run build
+  working-directory: frontend
+  run: npm run build
 
 - name: Run browser tests
   run: ./vendor/bin/pest tests/Browser
@@ -173,21 +186,21 @@ Default port is 5173:
 
 ```php
 Bridge::setDefault('http://localhost:5173')
-    ->serve('npm run dev', cwd: 'frontend');
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 ### Next.js
 
 ```php
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: 'frontend');
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 ### Vue CLI (Legacy)
 
 ```php
 Bridge::setDefault('http://localhost:8080')
-    ->serve('npm run serve', cwd: 'frontend');
+    ->serve('npm run serve', cwd: '../frontend');
 ```
 
 ## Self-Hosted Runners
@@ -272,6 +285,9 @@ jobs:
   browser-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: backend
 
     strategy:
       fail-fast: false
@@ -279,7 +295,16 @@ jobs:
         php: ['8.2', '8.3']
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-repo
+          path: frontend
 
       - name: Setup PHP ${{ matrix.php }}
         uses: shivammathur/setup-php@v2
@@ -299,7 +324,9 @@ jobs:
           composer install --no-interaction --prefer-dist
           npm ci
           npx playwright install --with-deps chromium
-          cd frontend && npm ci
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
 
       - name: Prepare Laravel
         run: |
@@ -317,7 +344,7 @@ jobs:
         with:
           name: browser-artifacts-php${{ matrix.php }}
           path: |
-            tests/Browser/screenshots/
-            storage/logs/
+            backend/tests/Browser/screenshots/
+            backend/storage/logs/
           retention-days: 7
 ```

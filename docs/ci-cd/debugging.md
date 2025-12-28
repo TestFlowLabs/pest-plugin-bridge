@@ -14,7 +14,7 @@ Capture screenshots on test failure and upload them as artifacts:
   uses: actions/upload-artifact@v4
   with:
     name: browser-screenshots
-    path: tests/Browser/screenshots/
+    path: backend/tests/Browser/screenshots/
     retention-days: 7
 ```
 
@@ -57,7 +57,7 @@ test('page renders correctly', function () {
   uses: actions/upload-artifact@v4
   with:
     name: browser-html
-    path: tests/Browser/html/
+    path: backend/tests/Browser/html/
     retention-days: 7
 ```
 
@@ -186,9 +186,21 @@ on: [push, pull_request]
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-repo
+          path: frontend
 
       # ... setup steps ...
 
@@ -200,7 +212,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browser-screenshots
-          path: tests/Browser/screenshots/
+          path: backend/tests/Browser/screenshots/
           retention-days: 7
 
       - name: Upload HTML snapshots on failure
@@ -208,7 +220,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: browser-html
-          path: tests/Browser/html/
+          path: backend/tests/Browser/html/
           retention-days: 7
 
       - name: Upload test logs on failure
@@ -216,6 +228,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-logs
-          path: storage/logs/
+          path: backend/storage/logs/
           retention-days: 7
 ```

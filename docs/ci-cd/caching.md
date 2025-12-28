@@ -77,7 +77,8 @@ Using the Playwright version as the cache key ensures browsers are re-downloaded
     restore-keys: ${{ runner.os }}-frontend-
 
 - name: Install frontend dependencies
-  run: cd frontend && npm ci
+  working-directory: frontend
+  run: npm ci
 ```
 
 ## Complete Workflow with All Caches
@@ -90,9 +91,21 @@ on: [push, pull_request]
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-repo
+          path: frontend
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -162,7 +175,8 @@ jobs:
           restore-keys: ${{ runner.os }}-frontend-
 
       - name: Install frontend dependencies
-        run: cd frontend && npm ci
+        working-directory: frontend
+        run: npm ci
 
       # ─────────────────────────────────────────────────────────────────
       # RUN TESTS
