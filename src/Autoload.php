@@ -8,7 +8,7 @@ use TestFlowLabs\PestPluginBridge\BridgeTrait;
 
 Plugin::uses(BridgeTrait::class);
 
-// Register shutdown handler to stop frontend servers and reset Bridge state
+// Register shutdown handler to stop frontend servers, reset Bridge state, and clear HTTP fakes
 register_shutdown_function(function (): void {
     Bridge::reset();
 });

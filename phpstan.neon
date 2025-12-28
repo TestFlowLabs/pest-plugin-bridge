@@ -5,6 +5,10 @@ parameters:
     level: max
     paths:
         - src
+    excludePaths:
+        # Laravel-specific middleware requires Laravel framework
+        # which is not a direct dependency of this plugin
+        - src/Laravel
     tmpDir: .phpstan.cache
     ignoreErrors:
         # BridgeTrait is used at runtime via Plugin::uses() in Autoload.php

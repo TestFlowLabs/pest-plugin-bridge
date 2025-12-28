@@ -309,3 +309,132 @@ describe('Bridge::add edge cases', function (): void {
         expect(Bridge::buildUrl('/dashboard'))->toBe('http://localhost:3000/app/dashboard');
     });
 });
+
+describe('Bridge::fake', function (): void {
+    afterEach(function (): void {
+        Bridge::clearFakes();
+    });
+
+    test('registers fake HTTP responses', function (): void {
+        Bridge::fake([
+            'https://api.stripe.com/*' => [
+                'status' => 200,
+                'body'   => ['id' => 'ch_123', 'status' => 'succeeded'],
+            ],
+        ]);
+
+        expect(Bridge::hasFakes())->toBeTrue();
+    });
+
+    test('getFakes returns registered configuration', function (): void {
+        $fakes = [
+            'https://api.stripe.com/*' => [
+                'status' => 200,
+                'body'   => ['id' => 'ch_123'],
+            ],
+            'https://api.sendgrid.com/*' => [
+                'status' => 202,
+                'body'   => ['message' => 'queued'],
+            ],
+        ];
+
+        Bridge::fake($fakes);
+
+        expect(Bridge::getFakes())->toBe($fakes);
+    });
+
+    test('hasFakes returns false when no fakes registered', function (): void {
+        expect(Bridge::hasFakes())->toBeFalse();
+    });
+
+    test('getFakes returns empty array when no fakes registered', function (): void {
+        expect(Bridge::getFakes())->toBe([]);
+    });
+
+    test('clearFakes removes registered fakes', function (): void {
+        Bridge::fake([
+            'https://api.stripe.com/*' => ['status' => 200],
+        ]);
+
+        expect(Bridge::hasFakes())->toBeTrue();
+
+        Bridge::clearFakes();
+
+        expect(Bridge::hasFakes())->toBeFalse();
+        expect(Bridge::getFakes())->toBe([]);
+    });
+
+    test('reset also clears fakes', function (): void {
+        Bridge::fake([
+            'https://api.stripe.com/*' => ['status' => 200],
+        ]);
+
+        expect(Bridge::hasFakes())->toBeTrue();
+
+        Bridge::reset();
+
+        expect(Bridge::hasFakes())->toBeFalse();
+    });
+
+    test('getFakeConfigPath returns path in temp directory', function (): void {
+        $path = Bridge::getFakeConfigPath();
+
+        expect($path)->toStartWith(sys_get_temp_dir());
+        expect($path)->toContain('bridge_http_fakes.json');
+    });
+
+    test('fake writes config to file', function (): void {
+        Bridge::fake([
+            'https://api.example.com/*' => ['status' => 200],
+        ]);
+
+        $path = Bridge::getFakeConfigPath();
+
+        expect(file_exists($path))->toBeTrue();
+
+        $content = file_get_contents($path);
+        expect($content)->toContain('api.example.com');
+    });
+
+    test('fake supports all response options', function (): void {
+        $fakes = [
+            'https://api.stripe.com/v1/charges' => [
+                'status'  => 201,
+                'body'    => ['id' => 'ch_123', 'amount' => 1000],
+                'headers' => ['X-Request-Id' => 'req_abc123'],
+            ],
+        ];
+
+        Bridge::fake($fakes);
+
+        $retrieved = Bridge::getFakes();
+
+        expect($retrieved['https://api.stripe.com/v1/charges']['status'])->toBe(201);
+        expect($retrieved['https://api.stripe.com/v1/charges']['body']['amount'])->toBe(1000);
+        expect($retrieved['https://api.stripe.com/v1/charges']['headers']['X-Request-Id'])->toBe('req_abc123');
+    });
+
+    test('fake overwrites previous fakes', function (): void {
+        Bridge::fake([
+            'https://api.stripe.com/*' => ['status' => 200],
+        ]);
+
+        Bridge::fake([
+            'https://api.sendgrid.com/*' => ['status' => 202],
+        ]);
+
+        $fakes = Bridge::getFakes();
+
+        expect($fakes)->toHaveKey('https://api.sendgrid.com/*');
+        expect($fakes)->not->toHaveKey('https://api.stripe.com/*');
+    });
+
+    test('clearFakes is safe to call when no fakes exist', function (): void {
+        expect(Bridge::hasFakes())->toBeFalse();
+
+        // Should not throw
+        Bridge::clearFakes();
+
+        expect(Bridge::hasFakes())->toBeFalse();
+    });
+});

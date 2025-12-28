@@ -14,6 +14,12 @@ use InvalidArgumentException;
  */
 final class Bridge
 {
+    /**
+     * File path for HTTP fake configuration.
+     * Used for cross-process communication between test and server.
+     */
+    private const string FAKE_CONFIG_PATH = 'bridge_http_fakes.json';
+
     private static ?string $defaultUrl = null;
 
     /** @var array<string, string> */
@@ -126,12 +132,101 @@ final class Bridge
 
     /**
      * Reset all configuration.
+     *
+     * Clears frontend URLs, stops all servers, and removes any HTTP fakes.
      */
     public static function reset(): void
     {
         self::$defaultUrl = null;
         self::$frontends  = [];
         FrontendManager::reset();
+        self::clearFakes();
+    }
+
+    /**
+     * Register fake HTTP responses for external API calls.
+     *
+     * This enables faking external HTTP calls (like Stripe, SendGrid) in browser tests.
+     * Works across process boundaries by writing config to a file that the Laravel
+     * middleware reads.
+     *
+     * Usage:
+     * ```php
+     * Bridge::fake([
+     *     'https://api.stripe.com/*' => [
+     *         'status' => 200,
+     *         'body' => ['id' => 'ch_123', 'status' => 'succeeded'],
+     *     ],
+     *     'https://api.sendgrid.com/*' => [
+     *         'status' => 202,
+     *         'body' => ['message' => 'queued'],
+     *     ],
+     * ]);
+     * ```
+     *
+     * Note: Requires BridgeHttpFakeMiddleware to be registered in your Laravel app.
+     *
+     * @param  array<string, array{status?: int, body?: array<mixed>, headers?: array<string, string>}>  $fakes
+     */
+    public static function fake(array $fakes): void
+    {
+        $path = self::getFakeConfigPath();
+        file_put_contents($path, json_encode($fakes, JSON_PRETTY_PRINT | JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * Clear all registered HTTP fakes.
+     *
+     * Called automatically after each test via shutdown handler.
+     */
+    public static function clearFakes(): void
+    {
+        $path = self::getFakeConfigPath();
+
+        if (file_exists($path)) {
+            unlink($path);
+        }
+    }
+
+    /**
+     * Check if any HTTP fakes are registered.
+     */
+    public static function hasFakes(): bool
+    {
+        return file_exists(self::getFakeConfigPath());
+    }
+
+    /**
+     * Get the current fake configuration.
+     *
+     * @return array<string, array{status?: int, body?: array<mixed>, headers?: array<string, string>}>
+     */
+    public static function getFakes(): array
+    {
+        $path = self::getFakeConfigPath();
+
+        if (!file_exists($path)) {
+            return [];
+        }
+
+        $content = file_get_contents($path);
+
+        if ($content === false) {
+            return [];
+        }
+
+        /** @var array<string, array{status?: int, body?: array<mixed>, headers?: array<string, string>}> $decoded */
+        $decoded = json_decode($content, true, 512, JSON_THROW_ON_ERROR);
+
+        return $decoded;
+    }
+
+    /**
+     * Get the path to the fake configuration file.
+     */
+    public static function getFakeConfigPath(): string
+    {
+        return sys_get_temp_dir().DIRECTORY_SEPARATOR.self::FAKE_CONFIG_PATH;
     }
 
     /**
