@@ -1,11 +1,24 @@
-# Pest Bridge Plugin
+<p align="center">
+    <img src="docs/public/logo.svg" width="120" alt="Pest Bridge Plugin">
+</p>
 
-[![Tests](https://github.com/TestFlowLabs/pest-plugin-bridge/actions/workflows/tests.yml/badge.svg)](https://github.com/TestFlowLabs/pest-plugin-bridge/actions)
-[![License](https://img.shields.io/github/license/TestFlowLabs/pest-plugin-bridge)](LICENSE)
+<h1 align="center">Pest Bridge Plugin</h1>
 
-Test external frontends from Laravel — write browser tests in PHP for Vue, React, Nuxt, Next.js.
+<p align="center">
+    <a href="https://github.com/TestFlowLabs/pest-plugin-bridge/actions"><img src="https://github.com/TestFlowLabs/pest-plugin-bridge/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/github/license/TestFlowLabs/pest-plugin-bridge" alt="License"></a>
+</p>
 
-**[Documentation](https://bridge.testflowlabs.dev)** | **[Getting Started](https://bridge.testflowlabs.dev/getting-started/quick-start)**
+<p align="center">
+    Test external frontends from Laravel — write browser tests in PHP for Vue, React, Nuxt, Next.js.
+</p>
+
+<p align="center">
+    <a href="https://bridge.testflowlabs.dev"><strong>Documentation</strong></a> ·
+    <a href="https://bridge.testflowlabs.dev/getting-started/quick-start"><strong>Getting Started</strong></a>
+</p>
+
+<br>
 
 ## The Problem
 
