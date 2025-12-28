@@ -6,12 +6,12 @@ on:
       api_branch:
         description: 'API branch'
         required: false
-        default: 'main'
+        default: 'master'
         type: string
       frontend_branch:
         description: 'Frontend branch'
         required: false
-        default: 'main'
+        default: 'master'
         type: string
       test_filter:
         description: 'Test filter (optional)'
