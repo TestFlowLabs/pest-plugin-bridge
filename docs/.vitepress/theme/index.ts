@@ -8,6 +8,7 @@ import BidirectionalDiagram from './components/BidirectionalDiagram.vue'
 import TestFlowDiagram from './components/TestFlowDiagram.vue'
 import CIFlowDiagram from './components/CIFlowDiagram.vue'
 import MemoryProblemDiagram from './components/MemoryProblemDiagram.vue'
+import HomeFeatures from './components/HomeFeatures.vue'
 
 export default {
   extends: DefaultTheme,
@@ -18,5 +19,6 @@ export default {
     app.component('TestFlowDiagram', TestFlowDiagram)
     app.component('CIFlowDiagram', CIFlowDiagram)
     app.component('MemoryProblemDiagram', MemoryProblemDiagram)
+    app.component('HomeFeatures', HomeFeatures)
   }
 } satisfies Theme

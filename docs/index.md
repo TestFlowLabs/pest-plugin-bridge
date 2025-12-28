@@ -17,7 +17,7 @@ hero:
       link: https://github.com/TestFlowLabs/pest-plugin-bridge
 ---
 
-<div class="feature-sections vp-doc">
+<HomeFeatures>
 
 <div class="feature-section">
 <div class="feature-text">
@@ -247,4 +247,4 @@ test('form validation works', function () {
 </div>
 </div>
 
-</div>
+</HomeFeatures>
