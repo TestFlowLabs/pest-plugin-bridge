@@ -22,6 +22,20 @@ final class FrontendDefinition
     private int $warmupDelayMs = 0;
 
     /**
+     * Path to env file to create/update with test server URLs.
+     * Useful when process env vars don't override .env.local (Vite quirk).
+     */
+    private ?string $envFilePath = null;
+
+    /**
+     * Custom environment variables with path suffixes.
+     * Keys are env var names, values are path suffixes (e.g., '/v1/retailer/').
+     *
+     * @var array<string, string>
+     */
+    private array $customEnvVars = [];
+
+    /**
      * Default pattern covers most frontend dev servers:
      * - Nuxt: "Local: http://localhost:3000"
      * - Vite: "VITE ready in 500ms", "http://localhost:5173"
@@ -117,5 +131,65 @@ final class FrontendDefinition
     public function getWarmupDelayMs(): int
     {
         return $this->warmupDelayMs;
+    }
+
+    /**
+     * Set the path to an env file to create with test server URLs.
+     *
+     * Vite's .env.local takes precedence over process environment variables.
+     * This method allows creating a temporary env file (e.g., .env.test)
+     * that will be read by the frontend when started with --mode test.
+     *
+     * @param  string  $path  Absolute path to the env file to create
+     */
+    public function envFile(string $path): self
+    {
+        $this->envFilePath = $path;
+
+        return $this;
+    }
+
+    /**
+     * Get the env file path.
+     */
+    public function getEnvFilePath(): ?string
+    {
+        return $this->envFilePath;
+    }
+
+    /**
+     * Set custom environment variables with path suffixes.
+     *
+     * The test server URL will be prepended to each path suffix.
+     * Use this for project-specific API endpoint environment variables.
+     *
+     * Example:
+     * ```php
+     * Bridge::setDefault('http://localhost:5173')
+     *     ->serve('npm run dev', cwd: '../frontend')
+     *     ->env([
+     *         'VITE_ADMIN_API'    => '/v1/admin/',
+     *         'VITE_RETAILER_API' => '/v1/retailer/',
+     *         'VITE_PUBLIC_API'   => '/v1/',
+     *     ]);
+     * ```
+     *
+     * @param  array<string, string>  $vars  Environment variable names and path suffixes
+     */
+    public function env(array $vars): self
+    {
+        $this->customEnvVars = $vars;
+
+        return $this;
+    }
+
+    /**
+     * Get custom environment variables.
+     *
+     * @return array<string, string>
+     */
+    public function getCustomEnvVars(): array
+    {
+        return $this->customEnvVars;
     }
 }

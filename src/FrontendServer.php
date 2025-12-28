@@ -38,11 +38,11 @@ final class FrontendServer
             return;
         }
 
-        // Pass null for env to inherit the current process environment
+        // Inject API URL environment variables so frontend calls the test server
         $this->process = Process::fromShellCommandline(
             $command,
             $this->definition->getWorkingDirectory(),
-            null, // Inherit environment
+            $this->getEnvironmentVariables(),
         );
 
         $this->process->setTimeout(0);
@@ -109,6 +109,9 @@ final class FrontendServer
     /**
      * Get environment variables with API URL injected.
      *
+     * Injects the Laravel test server URL into common frontend environment
+     * variables so the frontend calls the test server instead of production.
+     *
      * @return array<string, string>
      */
     private function getEnvironmentVariables(): array
@@ -121,7 +124,43 @@ final class FrontendServer
         /** @var array<string, string> $env */
         $env = array_filter($env, is_string(...));
 
-        return $env;
+        // Get the test Laravel server URL from pest-plugin-browser
+        $apiUrl = $this->getApiUrl();
+
+        // Inject API URL for various frontend frameworks
+        // These override any .env.local values when the frontend starts
+        $apiVariables = [
+            // Generic
+            'API_URL'      => $apiUrl,
+            'API_BASE_URL' => $apiUrl,
+            'BACKEND_URL'  => $apiUrl,
+
+            // Vite (Vue, React, Svelte, etc.)
+            'VITE_API_URL'      => $apiUrl,
+            'VITE_API_BASE_URL' => $apiUrl,
+            'VITE_BACKEND_URL'  => $apiUrl,
+
+            // Nuxt 3
+            'NUXT_PUBLIC_API_BASE' => $apiUrl,
+            'NUXT_PUBLIC_API_URL'  => $apiUrl,
+
+            // Next.js
+            'NEXT_PUBLIC_API_URL'      => $apiUrl,
+            'NEXT_PUBLIC_API_BASE_URL' => $apiUrl,
+
+            // Create React App
+            'REACT_APP_API_URL'      => $apiUrl,
+            'REACT_APP_API_BASE_URL' => $apiUrl,
+        ];
+
+        // Add custom environment variables from definition
+        // These allow project-specific API endpoints (e.g., /v1/admin/, /v1/retailer/)
+        foreach ($this->definition->getCustomEnvVars() as $name => $pathSuffix) {
+            $apiVariables[$name] = rtrim($apiUrl, '/') . '/' . ltrim($pathSuffix, '/');
+        }
+
+        // Merge with inherited environment, API variables take precedence
+        return array_merge($env, $apiVariables);
     }
 
     /**
