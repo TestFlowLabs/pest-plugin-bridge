@@ -117,6 +117,72 @@ test('can interact with checkboxes', function () {
 });
 ```
 
+### Radio Buttons
+
+```php
+test('can select radio options', function () {
+    $this->bridge('/survey')
+        ->radio('size', 'large')
+        ->radio('color', 'blue');
+});
+```
+
+### Appending Text
+
+Add text to an input without clearing existing content:
+
+```php
+$this->bridge('/editor')
+    ->append('[data-testid="description"]', ' Additional text');
+```
+
+### Clearing Fields
+
+Clear an input field:
+
+```php
+$this->bridge('/search')
+    ->clear('[data-testid="search-input"]');
+```
+
+### Pressing Buttons
+
+Press a button by its visible text:
+
+```php
+$this->bridge('/checkout')
+    ->press('Complete Order');
+```
+
+### Press and Wait
+
+Press a button and wait for a specified duration:
+
+```php
+$this->bridge('/checkout')
+    ->pressAndWaitFor('Submit', 2); // Press and wait 2 seconds
+```
+
+### Form Submission
+
+Submit the first form on the page:
+
+```php
+$this->bridge('/contact')
+    ->fill('[data-testid="email"]', 'user@example.com')
+    ->fill('[data-testid="message"]', 'Hello!')
+    ->submit();
+```
+
+### File Uploads
+
+Attach a file to a file input:
+
+```php
+$this->bridge('/profile')
+    ->attach('[data-testid="avatar-input"]', '/path/to/image.jpg');
+```
+
 ## Waiting Strategies
 
 ### Fixed Wait
@@ -206,6 +272,139 @@ test('redirects after login', function () {
         ->assertPathContains('/dashboard')
         ->assertPathIs('/dashboard');
 });
+```
+
+## Getting Element Values
+
+### Get Element Text
+
+Retrieve the text content of an element:
+
+```php
+$this->bridge('/dashboard')
+    ->text('[data-testid="welcome-message"]'); // Returns "Welcome, John"
+```
+
+### Get Input Value
+
+Retrieve the current value of an input:
+
+```php
+$this->bridge('/profile')
+    ->value('[data-testid="email-input"]'); // Returns "user@example.com"
+```
+
+### Get Attribute Value
+
+Retrieve an attribute value from an element:
+
+```php
+$this->bridge('/products')
+    ->attribute('[data-testid="product-image"]', 'alt'); // Returns "Product Name"
+```
+
+### Get Page Content
+
+Retrieve the full HTML content of the page:
+
+```php
+$html = $this->bridge('/')
+    ->content();
+```
+
+### Get Current URL
+
+Retrieve the current page URL:
+
+```php
+$url = $this->bridge('/dashboard')
+    ->url();
+```
+
+## Advanced Interactions
+
+### Hover
+
+Hover over an element:
+
+```php
+$this->bridge('/menu')
+    ->hover('[data-testid="dropdown-trigger"]')
+    ->assertVisible('[data-testid="dropdown-menu"]');
+```
+
+### Drag and Drop
+
+Drag an element to a target:
+
+```php
+$this->bridge('/kanban')
+    ->drag('[data-testid="task-1"]', '[data-testid="done-column"]');
+```
+
+### Keyboard Input
+
+Send keyboard events to an element:
+
+```php
+// Type text with keyboard
+$this->bridge('/editor')
+    ->keys('[data-testid="editor"]', 'Hello World');
+
+// Keyboard shortcuts
+$this->bridge('/editor')
+    ->keys('[data-testid="editor"]', ['{Control}', 'a']); // Select all
+```
+
+### Hold Key During Actions
+
+Perform actions while holding a key:
+
+```php
+$this->bridge('/file-manager')
+    ->withKeyDown('Shift', function ($page) {
+        $page->click('[data-testid="file-1"]')
+             ->click('[data-testid="file-5"]'); // Multi-select
+    });
+```
+
+## Working with iFrames
+
+Interact with content inside iframes:
+
+```php
+$this->bridge('/embedded')
+    ->withinIframe('[data-testid="iframe-container"]', function ($page) {
+        $page->fill('[data-testid="name"]', 'John Doe')
+             ->click('[data-testid="submit"]');
+    });
+```
+
+## JavaScript Execution
+
+Execute JavaScript on the page:
+
+```php
+// Get a value
+$title = $this->bridge('/')
+    ->script('document.title');
+
+// Modify the page
+$this->bridge('/')
+    ->script('document.body.style.backgroundColor = "red"');
+```
+
+## In-Page Navigation
+
+Navigate within the same browser context (maintains state):
+
+```php
+$this->bridge('/login')
+    ->typeSlowly('[data-testid="email"]', 'user@example.com', 20)
+    ->typeSlowly('[data-testid="password"]', 'password', 20)
+    ->click('[data-testid="login-button"]')
+    ->navigate('/dashboard') // Navigates without losing session
+    ->assertSee('Welcome');
 ```
 
 ## Complete Example
