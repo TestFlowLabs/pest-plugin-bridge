@@ -466,6 +466,19 @@ Bridge::setDefault('http://localhost:3000')
 pest()->extends(TestCase::class)->in('Browser');
 ```
 
+### Custom API Endpoints
+
+If your frontend uses custom API endpoints, configure custom environment variables:
+
+```php
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->env([
+        'NUXT_PUBLIC_API_BASE'  => '/api/',
+        'NUXT_PUBLIC_ADMIN_API' => '/api/admin/',
+    ]);
+```
+
 Then simply run:
 
 ```bash

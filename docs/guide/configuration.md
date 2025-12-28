@@ -48,7 +48,9 @@ pest()->extends(TestCase::class)->in('Browser');
 | Method | Description |
 |--------|-------------|
 | `->serve(string $command, ?string $cwd = null)` | Command to start the server |
-| `->readyWhen(string $pattern)` | Regex pattern to detect server ready (optional, default covers Nuxt, Vite, Next.js, CRA, Angular) |
+| `->readyWhen(string $pattern)` | Regex pattern to detect server ready (optional) |
+| `->warmup(int $milliseconds)` | Extra delay after server reports ready (for large frontends) |
+| `->env(array $vars)` | Custom environment variables with path suffixes |
 
 ::: tip readyWhen() is Optional
 The default pattern (`ready|localhost|started|listening|compiled|http://|https://`) covers most frontend dev servers. Only use `readyWhen()` if your server has a unique output format.
@@ -63,6 +65,58 @@ Bridge::setDefault('http://localhost:3000')
 Bridge::frontend('admin', 'http://localhost:3001')
     ->serve('npm run dev', cwd: '../admin-panel');
 ```
+
+### Custom Environment Variables
+
+The plugin automatically injects the test Laravel server URL into common environment variables. For projects with custom API endpoint structures, use the `env()` method:
+
+```php
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->env([
+        // Custom API endpoints - path suffixes are appended to the test server URL
+        'VITE_BACKEND_URL'          => '/',           // http://127.0.0.1:8123/
+        'VITE_ADMIN_API'            => '/v1/admin/',  // http://127.0.0.1:8123/v1/admin/
+        'VITE_RETAILER_API'         => '/v1/retailer/', // http://127.0.0.1:8123/v1/retailer/
+        'VITE_PUBLIC_API'           => '/v1/',        // http://127.0.0.1:8123/v1/
+    ]);
+```
+
+#### Default Environment Variables
+
+The plugin automatically sets these environment variables (no configuration needed):
+
+| Variable | Framework | Value |
+|----------|-----------|-------|
+| `API_URL`, `API_BASE_URL`, `BACKEND_URL` | Generic | Test server URL |
+| `VITE_API_URL`, `VITE_API_BASE_URL`, `VITE_BACKEND_URL` | Vite (Vue, React, Svelte) | Test server URL |
+| `NUXT_PUBLIC_API_BASE`, `NUXT_PUBLIC_API_URL` | Nuxt 3 | Test server URL |
+| `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_API_BASE_URL` | Next.js | Test server URL |
+| `REACT_APP_API_URL`, `REACT_APP_API_BASE_URL` | Create React App | Test server URL |
+
+::: tip Environment Variable Precedence
+Process environment variables (injected by the plugin) take precedence over `.env` and `.env.local` files in Vite. This ensures your frontend always calls the test server during tests.
+:::
+
+### Warmup Delay
+
+Large frontend applications may need extra time after reporting "ready" before they can efficiently handle page loads. Use `warmup()` to add a delay:
+
+```php
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready')
+    ->warmup(3000); // Wait 3 seconds after server is ready
+```
+
+This is particularly useful for:
+- Large monorepo frontends with many dependencies
+- Frontends that perform heavy initialization on startup
+- Development servers that need time to compile initial bundles
+
+::: info Vite Cold-Start
+Vite compiles JavaScript modules on-demand when the browser first requests them. The `bridge()` method already uses a 30-second timeout by default to handle this. Use `warmup()` only if you experience consistent timeouts with very large applications.
+:::
 
 ## URL Validation
 

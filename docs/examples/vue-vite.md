@@ -393,6 +393,24 @@ Bridge::setDefault('http://localhost:5173')
 ```
 :::
 
+### Custom API Endpoints
+
+If your frontend uses multiple API endpoints (e.g., admin API, public API), configure custom environment variables:
+
+```php
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('VITE.*ready')
+    ->env([
+        'VITE_BACKEND_URL'     => '/',           // Base URL
+        'VITE_ADMIN_API'       => '/v1/admin/',  // Admin API
+        'VITE_RETAILER_API'    => '/v1/retailer/', // Retailer API
+        'VITE_PUBLIC_API'      => '/v1/',        // Public API
+    ]);
+```
+
+The plugin appends your path suffixes to the test server URL. For example, if the test server runs on `http://127.0.0.1:8123`, `VITE_RETAILER_API` becomes `http://127.0.0.1:8123/v1/retailer/`.
+
 Then simply run:
 
 ```bash

@@ -507,6 +507,28 @@ Bridge::setDefault('http://localhost:5173')
 pest()->extends(TestCase::class)->in('Browser');
 ```
 
+### Custom API Endpoints
+
+If your frontend uses custom API endpoints, configure custom environment variables:
+
+```php
+// For Vite-based React
+Bridge::setDefault('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->env([
+        'VITE_API_BASE'  => '/api/',
+        'VITE_ADMIN_API' => '/api/admin/',
+    ]);
+
+// For Create React App
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm start', cwd: '../frontend')
+    ->env([
+        'REACT_APP_API_BASE'  => '/api/',
+        'REACT_APP_ADMIN_API' => '/api/admin/',
+    ]);
+```
+
 Then simply run:
 
 ```bash
