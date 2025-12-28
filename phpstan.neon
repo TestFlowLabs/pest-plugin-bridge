@@ -13,3 +13,5 @@ parameters:
         -
             message: '#Call to an undefined method .+::visit\(\)#'
             reportUnmatched: false
+        # ServerManager is internal to Pest but designed to be used by plugins
+        - identifier: method.internalClass
