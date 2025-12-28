@@ -14,7 +14,17 @@ final class FrontendDefinition
 {
     private ?string $serveCommand     = null;
     private ?string $workingDirectory = null;
-    private string $readyPattern      = 'ready|localhost|started|listening';
+
+    /**
+     * Default pattern covers most frontend dev servers:
+     * - Nuxt: "Local: http://localhost:3000"
+     * - Vite: "VITE ready in 500ms", "http://localhost:5173"
+     * - Next.js: "ready - started server", "http://localhost:3000"
+     * - CRA: "Compiled successfully!"
+     * - Angular: "listening on localhost:4200"
+     * - Generic: any http:// or https:// URL output
+     */
+    private string $readyPattern = 'ready|localhost|started|listening|compiled|http://|https://';
 
     public function __construct(
         public readonly string $url,

@@ -61,10 +61,11 @@ describe('FrontendDefinition', function (): void {
             expect($definition->getReadyPattern())->toBe('VITE.*ready');
         });
 
-        test('has default ready pattern', function (): void {
+        test('has default ready pattern that covers common frameworks', function (): void {
             $definition = new FrontendDefinition('http://localhost:3000');
 
-            expect($definition->getReadyPattern())->toBe('ready|localhost|started|listening');
+            // Default pattern covers: Nuxt, Vite, Next.js, CRA, Angular
+            expect($definition->getReadyPattern())->toBe('ready|localhost|started|listening|compiled|http://|https://');
         });
 
         test('returns self for fluent chaining', function (): void {
