@@ -26,23 +26,40 @@ The plugin can automatically start and stop your frontend server:
 // tests/Pest.php
 
 use TestFlowLabs\PestPluginBridge\Bridge;
-use TestFlowLabs\PestPluginBridge\BridgeTrait;
 use Tests\TestCase;
 
-uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:3000')
-        ->serve('npm run dev', cwd: '../frontend')
-        ->readyWhen('ready|localhost'))
-    ->in('Browser');
+// Configure frontend with automatic server management
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('Local:.*http');  // Custom pattern for Nuxt/Vite
+
+pest()->extends(TestCase::class)->in('Browser');
 ```
 
-The `->serve()` method accepts:
-- `command` - The command to start the server (e.g., `npm run dev`)
-- `cwd` - Working directory for the command
+### How It Works
 
-The `->readyWhen()` method accepts a regex pattern to detect when the server is ready.
+1. **Lazy Start**: Server starts automatically on the first `bridge()` call
+2. **API URL Injection**: Laravel API URL is injected via environment variables:
+   - `API_URL`, `VITE_API_URL`, `NUXT_PUBLIC_API_BASE`, `NEXT_PUBLIC_API_URL`, `REACT_APP_API_URL`
+3. **Ready Detection**: Waits for server output to match the pattern before continuing
+4. **Auto Stop**: Server stops automatically when tests complete (via shutdown handler)
 
-Cleanup is automatic via shutdown handler — no `afterAll` needed!
+### Configuration Options
+
+| Method | Description |
+|--------|-------------|
+| `->serve(string $command, ?string $cwd = null)` | Command to start the server |
+| `->readyWhen(string $pattern)` | Regex pattern to detect server ready (default: `ready\|localhost\|started\|listening`) |
+
+### Multiple Frontends with Auto-Start
+
+```php
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../customer-portal');
+
+Bridge::frontend('admin', 'http://localhost:3001')
+    ->serve('npm run dev', cwd: '../admin-panel');
+```
 
 ## URL Validation
 
