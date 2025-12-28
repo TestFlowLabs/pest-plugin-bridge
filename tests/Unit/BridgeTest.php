@@ -13,103 +13,15 @@ afterEach(function (): void {
     Bridge::reset();
 });
 
-describe('Bridge::setDefault', function (): void {
-    test('sets a valid URL', function (): void {
-        Bridge::setDefault('http://localhost:3000');
-
-        expect(Bridge::url())->toBe('http://localhost:3000');
-    });
-
-    test('returns FrontendDefinition', function (): void {
-        $definition = Bridge::setDefault('http://localhost:3000');
-
-        expect($definition)->toBeInstanceOf(FrontendDefinition::class);
-        expect($definition->url)->toBe('http://localhost:3000');
-        expect($definition->name)->toBeNull();
-    });
-
-    test('returned FrontendDefinition supports fluent chaining', function (): void {
-        $definition = Bridge::setDefault('http://localhost:3000')
-            ->serve('npm run dev', cwd: '../frontend');
-
-        expect($definition->hasServeCommand())->toBeTrue();
-        expect($definition->getServeCommand())->toBe('npm run dev');
-        expect($definition->getWorkingDirectory())->toBe('../frontend');
-    });
-
-    test('sets a valid URL with port', function (): void {
-        Bridge::setDefault('http://frontend.test:8080');
-
-        expect(Bridge::url())->toBe('http://frontend.test:8080');
-    });
-
-    test('sets a valid HTTPS URL', function (): void {
-        Bridge::setDefault('https://app.example.com');
-
-        expect(Bridge::url())->toBe('https://app.example.com');
-    });
-
-    test('throws exception for invalid URL', function (): void {
-        Bridge::setDefault('not-a-valid-url');
-    })->throws(InvalidArgumentException::class, 'Invalid URL: not-a-valid-url');
-
-    test('throws exception for empty URL', function (): void {
-        Bridge::setDefault('');
-    })->throws(InvalidArgumentException::class);
-});
-
-describe('Bridge::frontend', function (): void {
-    test('adds a named frontend', function (): void {
-        Bridge::frontend('admin', 'http://localhost:5173');
-
-        expect(Bridge::url('admin'))->toBe('http://localhost:5173');
-    });
-
-    test('returns FrontendDefinition', function (): void {
-        $definition = Bridge::frontend('admin', 'http://localhost:5173');
-
-        expect($definition)->toBeInstanceOf(FrontendDefinition::class);
-        expect($definition->url)->toBe('http://localhost:5173');
-        expect($definition->name)->toBe('admin');
-    });
-
-    test('returned FrontendDefinition supports fluent chaining', function (): void {
-        $definition = Bridge::frontend('admin', 'http://localhost:5173')
-            ->serve('npm run dev', cwd: '../admin-panel')
-            ->readyWhen('VITE.*ready');
-
-        expect($definition->hasServeCommand())->toBeTrue();
-        expect($definition->getServeCommand())->toBe('npm run dev');
-        expect($definition->getWorkingDirectory())->toBe('../admin-panel');
-        expect($definition->getReadyPattern())->toBe('VITE.*ready');
-    });
-
-    test('adds multiple named frontends', function (): void {
-        Bridge::frontend('admin', 'http://localhost:5173');
-        Bridge::frontend('mobile', 'http://localhost:5174');
-
-        expect(Bridge::url('admin'))->toBe('http://localhost:5173');
-        expect(Bridge::url('mobile'))->toBe('http://localhost:5174');
-    });
-
-    test('throws exception for empty name', function (): void {
-        Bridge::frontend('', 'http://localhost:3000');
-    })->throws(InvalidArgumentException::class, 'Frontend name cannot be empty');
-
-    test('throws exception for invalid URL', function (): void {
-        Bridge::frontend('admin', 'not-a-valid-url');
-    })->throws(InvalidArgumentException::class);
-});
-
 describe('Bridge::url', function (): void {
     test('returns default URL when no name provided', function (): void {
-        Bridge::setDefault('http://localhost:3000');
+        Bridge::add('http://localhost:3000');
 
         expect(Bridge::url())->toBe('http://localhost:3000');
     });
 
     test('returns named frontend URL', function (): void {
-        Bridge::frontend('admin', 'http://localhost:5173');
+        Bridge::add('http://localhost:5173', 'admin');
 
         expect(Bridge::url('admin'))->toBe('http://localhost:5173');
     });
@@ -125,7 +37,7 @@ describe('Bridge::url', function (): void {
 
 describe('Bridge::has', function (): void {
     test('returns true when default is set', function (): void {
-        Bridge::setDefault('http://localhost:3000');
+        Bridge::add('http://localhost:3000');
 
         expect(Bridge::has())->toBeTrue();
     });
@@ -135,7 +47,7 @@ describe('Bridge::has', function (): void {
     });
 
     test('returns true when named frontend exists', function (): void {
-        Bridge::frontend('admin', 'http://localhost:5173');
+        Bridge::add('http://localhost:5173', 'admin');
 
         expect(Bridge::has('admin'))->toBeTrue();
     });
@@ -147,8 +59,8 @@ describe('Bridge::has', function (): void {
 
 describe('Bridge::buildUrl', function (): void {
     beforeEach(function (): void {
-        Bridge::setDefault('http://localhost:5173');
-        Bridge::frontend('admin', 'http://localhost:5174');
+        Bridge::add('http://localhost:5173');
+        Bridge::add('http://localhost:5174', 'admin');
     });
 
     test('builds URL with default frontend', function (): void {
@@ -180,7 +92,7 @@ describe('Bridge::buildUrl', function (): void {
     });
 
     test('handles base URL with trailing slash', function (): void {
-        Bridge::setDefault('http://localhost:5173/');
+        Bridge::add('http://localhost:5173/');
 
         expect(Bridge::buildUrl('/dashboard'))->toBe('http://localhost:5173/dashboard');
     });
@@ -214,18 +126,147 @@ describe('Bridge::buildUrl', function (): void {
 
 describe('Bridge::reset', function (): void {
     test('clears the default URL', function (): void {
-        Bridge::setDefault('http://localhost:3000');
+        Bridge::add('http://localhost:3000');
         Bridge::reset();
 
         expect(Bridge::has())->toBeFalse();
     });
 
     test('clears all named frontends', function (): void {
-        Bridge::frontend('admin', 'http://localhost:5173');
-        Bridge::frontend('mobile', 'http://localhost:5174');
+        Bridge::add('http://localhost:5173', 'admin');
+        Bridge::add('http://localhost:5174', 'mobile');
         Bridge::reset();
 
         expect(Bridge::has('admin'))->toBeFalse();
         expect(Bridge::has('mobile'))->toBeFalse();
+    });
+});
+
+describe('Bridge::add', function (): void {
+    test('sets default frontend when no name provided', function (): void {
+        Bridge::add('http://localhost:3000');
+
+        expect(Bridge::url())->toBe('http://localhost:3000');
+        expect(Bridge::has())->toBeTrue();
+    });
+
+    test('adds named frontend when name provided', function (): void {
+        Bridge::add('http://localhost:5173', 'admin');
+
+        expect(Bridge::url('admin'))->toBe('http://localhost:5173');
+        expect(Bridge::has('admin'))->toBeTrue();
+    });
+
+    test('returns FrontendDefinition for default frontend', function (): void {
+        $definition = Bridge::add('http://localhost:3000');
+
+        expect($definition)->toBeInstanceOf(FrontendDefinition::class);
+        expect($definition->url)->toBe('http://localhost:3000');
+        expect($definition->name)->toBeNull();
+    });
+
+    test('returns FrontendDefinition for named frontend', function (): void {
+        $definition = Bridge::add('http://localhost:5173', 'admin');
+
+        expect($definition)->toBeInstanceOf(FrontendDefinition::class);
+        expect($definition->url)->toBe('http://localhost:5173');
+        expect($definition->name)->toBe('admin');
+    });
+
+    test('supports fluent chaining with serve', function (): void {
+        $definition = Bridge::add('http://localhost:3000')
+            ->serve('npm run dev', cwd: '../frontend');
+
+        expect($definition->hasServeCommand())->toBeTrue();
+        expect($definition->getServeCommand())->toBe('npm run dev');
+        expect($definition->getWorkingDirectory())->toBe('../frontend');
+    });
+
+    test('adds multiple named frontends', function (): void {
+        Bridge::add('http://localhost:5173', 'admin');
+        Bridge::add('http://localhost:5174', 'mobile');
+
+        expect(Bridge::url('admin'))->toBe('http://localhost:5173');
+        expect(Bridge::url('mobile'))->toBe('http://localhost:5174');
+    });
+
+    test('throws exception for invalid URL', function (): void {
+        Bridge::add('not-a-valid-url');
+    })->throws(InvalidArgumentException::class, 'Invalid URL: not-a-valid-url');
+
+    test('throws exception for empty URL', function (): void {
+        Bridge::add('');
+    })->throws(InvalidArgumentException::class);
+
+    test('throws exception for empty name', function (): void {
+        Bridge::add('http://localhost:3000', '');
+    })->throws(InvalidArgumentException::class, 'Frontend name cannot be empty');
+});
+
+describe('Bridge child frontends', function (): void {
+    test('child method registers a child frontend with correct URL', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('/analytics', 'analytics');
+
+        expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+    });
+
+    test('child method supports chaining multiple children', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('/analytics', 'analytics')
+            ->child('/reports', 'reports');
+
+        expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+        expect(Bridge::url('reports'))->toBe('http://localhost:3001/reports');
+    });
+
+    test('child method supports full fluent chain', function (): void {
+        $definition = Bridge::add('http://localhost:3001', 'admin')
+            ->child('/analytics', 'analytics')
+            ->child('/reports', 'reports')
+            ->serve('npm run dev', cwd: '../admin-frontend')
+            ->readyWhen('VITE.*ready');
+
+        expect(Bridge::url('admin'))->toBe('http://localhost:3001');
+        expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+        expect(Bridge::url('reports'))->toBe('http://localhost:3001/reports');
+        expect($definition->hasServeCommand())->toBeTrue();
+        expect($definition->getServeCommand())->toBe('npm run dev');
+        expect($definition->getReadyPattern())->toBe('VITE.*ready');
+    });
+
+    test('child normalizes paths with leading slash', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('/analytics', 'analytics');
+
+        expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+    });
+
+    test('child normalizes paths without leading slash', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('analytics', 'analytics');
+
+        expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+    });
+
+    test('child handles parent URL with trailing slash', function (): void {
+        Bridge::add('http://localhost:3001/', 'admin')
+            ->child('/analytics', 'analytics');
+
+        expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+    });
+
+    test('child works with default frontend', function (): void {
+        Bridge::add('http://localhost:3000')
+            ->child('/settings', 'settings');
+
+        expect(Bridge::url())->toBe('http://localhost:3000');
+        expect(Bridge::url('settings'))->toBe('http://localhost:3000/settings');
+    });
+
+    test('registerChild is internal and creates correct URL', function (): void {
+        Bridge::registerChild('http://localhost:3001', '/deep/path', 'deep');
+
+        expect(Bridge::url('deep'))->toBe('http://localhost:3001/deep/path');
     });
 });

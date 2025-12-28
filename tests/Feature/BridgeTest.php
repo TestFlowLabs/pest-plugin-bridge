@@ -13,7 +13,7 @@ use TestFlowLabs\PestPluginBridge\Bridge;
  */
 beforeEach(function (): void {
     Bridge::reset();
-    Bridge::setDefault('http://localhost:5173');
+    Bridge::add('http://localhost:5173');
 });
 
 afterEach(function (): void {
@@ -54,8 +54,8 @@ describe('external URL construction', function (): void {
 
 describe('named frontends', function (): void {
     beforeEach(function (): void {
-        Bridge::frontend('admin', 'http://localhost:5174');
-        Bridge::frontend('mobile', 'http://localhost:5175');
+        Bridge::add('http://localhost:5174', 'admin');
+        Bridge::add('http://localhost:5175', 'mobile');
     });
 
     test('builds URL with default frontend', function (): void {
@@ -85,31 +85,31 @@ describe('named frontends', function (): void {
 
 describe('different frontend ports', function (): void {
     test('works with Vite default port 5173', function (): void {
-        Bridge::setDefault('http://localhost:5173');
+        Bridge::add('http://localhost:5173');
 
         expect(Bridge::buildUrl('/app'))->toBe('http://localhost:5173/app');
     });
 
     test('works with Vue CLI default port 8080', function (): void {
-        Bridge::setDefault('http://localhost:8080');
+        Bridge::add('http://localhost:8080');
 
         expect(Bridge::buildUrl('/app'))->toBe('http://localhost:8080/app');
     });
 
     test('works with Create React App default port 3000', function (): void {
-        Bridge::setDefault('http://localhost:3000');
+        Bridge::add('http://localhost:3000');
 
         expect(Bridge::buildUrl('/app'))->toBe('http://localhost:3000/app');
     });
 
     test('works with Next.js default port 3000', function (): void {
-        Bridge::setDefault('http://localhost:3000');
+        Bridge::add('http://localhost:3000');
 
         expect(Bridge::buildUrl('/app'))->toBe('http://localhost:3000/app');
     });
 
     test('works with custom domain', function (): void {
-        Bridge::setDefault('https://staging.myapp.com');
+        Bridge::add('https://staging.myapp.com');
 
         expect(Bridge::buildUrl('/app'))->toBe('https://staging.myapp.com/app');
     });

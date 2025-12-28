@@ -28,7 +28,7 @@ describe('FrontendServer Integration', function (): void {
         $port         = 18765;
 
         // Configure Bridge with serve command
-        Bridge::setDefault("http://localhost:{$port}")
+        Bridge::add("http://localhost:{$port}")
             ->serve(
                 command: "php -S localhost:{$port} -t {$fixturesPath}",
                 cwd: $fixturesPath
@@ -51,7 +51,6 @@ describe('FrontendServer Integration', function (): void {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         expect($httpCode)->toBe(200);
         expect($response)->toContain('Welcome to Test App');
@@ -67,7 +66,7 @@ describe('FrontendServer Integration', function (): void {
     );
 
     test('uses custom environment variables when configured', function (): void {
-        $definition = Bridge::setDefault('http://localhost:3000')
+        $definition = Bridge::add('http://localhost:3000')
             ->serve('echo "ready"')
             ->env([
                 'CUSTOM_API_URL'   => '/api/',
@@ -81,7 +80,7 @@ describe('FrontendServer Integration', function (): void {
     });
 
     test('uses warmup delay when configured', function (): void {
-        $definition = Bridge::setDefault('http://localhost:3000')
+        $definition = Bridge::add('http://localhost:3000')
             ->serve('echo "ready"')
             ->warmup(2000);
 

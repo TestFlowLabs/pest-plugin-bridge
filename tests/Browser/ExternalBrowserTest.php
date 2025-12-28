@@ -87,7 +87,7 @@ beforeAll(function () use (&$serverPid, $serverPort): void {
         throw new RuntimeException('Fixture server did not start in time');
     }
 
-    Bridge::setDefault("http://localhost:{$serverPort}");
+    Bridge::add("http://localhost:{$serverPort}");
 });
 
 afterAll(function () use (&$serverPid): void {

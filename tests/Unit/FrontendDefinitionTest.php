@@ -2,7 +2,16 @@
 
 declare(strict_types=1);
 
+use TestFlowLabs\PestPluginBridge\Bridge;
 use TestFlowLabs\PestPluginBridge\FrontendDefinition;
+
+beforeEach(function (): void {
+    Bridge::reset();
+});
+
+afterEach(function (): void {
+    Bridge::reset();
+});
 
 describe('FrontendDefinition', function (): void {
     describe('constructor', function (): void {
@@ -200,6 +209,48 @@ describe('FrontendDefinition', function (): void {
                 'VITE_BACKEND_URL' => '/',
                 'VITE_ADMIN_API'   => '/v1/admin/',
             ]);
+        });
+    });
+
+    describe('child', function (): void {
+        test('registers child frontend with Bridge', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3001', 'admin');
+            $definition->child('/analytics', 'analytics');
+
+            expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+        });
+
+        test('returns self for fluent chaining', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3001', 'admin');
+            $result     = $definition->child('/analytics', 'analytics');
+
+            expect($result)->toBe($definition);
+        });
+
+        test('supports multiple children', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3001', 'admin');
+            $definition
+                ->child('/analytics', 'analytics')
+                ->child('/reports', 'reports')
+                ->child('/settings', 'settings');
+
+            expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+            expect(Bridge::url('reports'))->toBe('http://localhost:3001/reports');
+            expect(Bridge::url('settings'))->toBe('http://localhost:3001/settings');
+        });
+
+        test('can be combined with other fluent methods', function (): void {
+            $definition = (new FrontendDefinition('http://localhost:3001', 'admin'))
+                ->child('/analytics', 'analytics')
+                ->serve('npm run dev', cwd: '../admin')
+                ->readyWhen('VITE.*ready')
+                ->warmup(2000);
+
+            expect(Bridge::url('analytics'))->toBe('http://localhost:3001/analytics');
+            expect($definition->getServeCommand())->toBe('npm run dev');
+            expect($definition->getWorkingDirectory())->toBe('../admin');
+            expect($definition->getReadyPattern())->toBe('VITE.*ready');
+            expect($definition->getWarmupDelayMs())->toBe(2000);
         });
     });
 });
