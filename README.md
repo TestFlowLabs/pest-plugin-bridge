@@ -53,7 +53,7 @@ The `bridge($path)` method:
 - Returns the same browser page object as Pest's `visit()` method
 - Supports all standard browser testing methods (`fill()`, `click()`, `assertSee()`, etc.)
 
-## Example: Testing a Vue Frontend with Laravel Backend
+## Example: Testing a Vue/Nuxt Frontend with Laravel Backend
 
 ```php
 <?php
@@ -61,26 +61,84 @@ The `bridge($path)` method:
 // tests/Pest.php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-// Your Vue app runs on port 5173
-Bridge::setDefault('http://localhost:5173');
+// Your Vue/Nuxt app runs on port 3000
+Bridge::setDefault('http://localhost:3000');
 
-// tests/Feature/AuthTest.php
-use App\Models\User;
+// NOTE: Don't use RefreshDatabase with external server tests
+pest()->extends(TestCase::class)->in('Browser');
 
-test('user can complete login flow', function () {
-    // Arrange: Create test user in Laravel
-    $user = User::factory()->create([
-        'email' => 'test@example.com',
-    ]);
+// tests/Browser/RegisterTest.php
+test('user can register', function () {
+    $email = 'test'.time().'@example.com';
 
-    // Act: Test the Vue frontend
-    $this->bridge('/login')
-        ->fill('#email', 'test@example.com')
-        ->fill('#password', 'password')
+    $this->bridge('/register')
+        ->waitForEvent('networkidle')
+        ->click('input#name')
+        ->typeSlowly('input#name', 'TestUser', 30)
+        ->typeSlowly('input#email', $email, 20)
+        ->typeSlowly('input#password', 'password123', 20)
+        ->typeSlowly('input#password_confirmation', 'password123', 20)
         ->click('button[type="submit"]')
-        ->assertUrlContains('/dashboard')
+        ->waitForEvent('networkidle')
+        ->assertPathContains('/dashboard')
         ->assertSee('Welcome');
 });
+```
+
+## Vue/Nuxt Best Practices
+
+When testing Vue or Nuxt frontends, follow these guidelines:
+
+### Use `typeSlowly()` Instead of `fill()`
+
+Vue's `v-model` doesn't sync with Playwright's `fill()` method because `fill()` sets the DOM value directly without firing `input` events. Use `typeSlowly()` (which uses Playwright's `pressSequentially()`) to trigger proper keyboard events:
+
+```php
+// Won't work with Vue v-model
+->fill('input#email', 'test@example.com')
+
+// Works correctly - triggers Vue reactivity
+->typeSlowly('input#email', 'test@example.com', 20)
+```
+
+### Click First Input Before Typing
+
+Prevent character loss by clicking the first input field:
+
+```php
+$this->bridge('/register')
+    ->waitForEvent('networkidle')
+    ->click('input#name')           // Focus first
+    ->typeSlowly('input#name', 'User', 30)
+```
+
+### Wait for Network Idle After Form Submit
+
+```php
+->click('button[type="submit"]')
+->waitForEvent('networkidle')  // Wait for API call
+->assertPathContains('/dashboard')
+```
+
+### Don't Use RefreshDatabase
+
+The `RefreshDatabase` trait's transaction isolation doesn't work with external servers:
+
+```php
+// tests/Pest.php
+
+// Don't use RefreshDatabase for browser tests
+pest()->extends(TestCase::class)->in('Browser');
+```
+
+### Verify Results Via UI
+
+Since database queries won't see external server changes, use UI assertions:
+
+```php
+// Instead of database checks
+->assertPathContains('/dashboard')
+->assertSee('Welcome')
 ```
 
 ## Multiple Frontends
@@ -136,6 +194,71 @@ test('mobile app shows dashboard', function () {
 | Method | Description |
 |--------|-------------|
 | `$this->bridge(string $path = '/', ?string $frontend = null)` | Visit a page on an external frontend |
+
+## Troubleshooting
+
+### Form Values Not Submitting (Vue/Nuxt)
+**Problem:** Form appears filled but submits empty values.
+
+**Solution:** Use `typeSlowly()` instead of `fill()`. Vue's v-model doesn't sync with Playwright's direct DOM value setting.
+
+### First Characters Lost When Typing
+**Problem:** Typing "TestUser" results in "User" or similar.
+
+**Solution:** Add `->click('input#field')` before the first `typeSlowly()` call.
+
+### Database Assertions Fail But UI Shows Success
+**Problem:** `User::where(...)->exists()` returns false even though registration succeeded.
+
+**Solution:** Don't use `RefreshDatabase` trait. The transaction isolation prevents seeing external server changes. Use UI assertions instead.
+
+### CSRF Token Mismatch
+**Problem:** API returns 419 CSRF token mismatch error.
+
+**Solution:** For token-based API auth, remove `$middleware->statefulApi()` from `bootstrap/app.php`.
+
+### Test Hangs/Timeouts
+**Problem:** Tests hang indefinitely.
+
+**Solution:**
+- Ensure frontend server is running
+- Use `waitForEvent('networkidle')` instead of fixed `wait()` calls
+- Check browser console for JavaScript errors
+
+## Automatic Frontend Server Management
+
+The plugin can automatically start and stop frontend servers during test execution:
+
+```php
+<?php
+// tests/Pest.php
+
+use TestFlowLabs\PestPluginBridge\Bridge;
+
+// Automatically start Nuxt frontend before tests, stop after
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->readyWhen('Local:.*http');  // Custom ready pattern (optional)
+
+// Multiple frontends with auto-start
+Bridge::frontend('admin', 'http://localhost:3001')
+    ->serve('npm run dev', cwd: '../admin-panel');
+```
+
+### How It Works
+
+1. **Lazy Start**: Frontend servers start on the first `bridge()` call
+2. **API URL Injection**: Automatically injects the Laravel API URL via environment variables:
+   - `API_URL`, `VITE_API_URL`, `NUXT_PUBLIC_API_BASE`, `NEXT_PUBLIC_API_URL`, `REACT_APP_API_URL`
+3. **Ready Detection**: Waits for server output to match the ready pattern before continuing
+4. **Auto Stop**: Servers are automatically stopped when tests complete
+
+### FrontendDefinition API
+
+| Method | Description |
+|--------|-------------|
+| `->serve(string $command, ?string $cwd = null)` | Set the command to start the server |
+| `->readyWhen(string $pattern)` | Custom regex pattern to detect server ready (default: `ready\|localhost\|started\|listening`) |
 
 ## Development
 
