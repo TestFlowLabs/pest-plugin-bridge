@@ -1,6 +1,17 @@
 /* Custom theme styles for Pest Plugin Bridge */
 
+/* Google Fonts - Inter for base text */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Iosevka for code - from CDN */
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5/400.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5/600.css');
+
 :root {
+  /* Fonts */
+  --vp-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --vp-font-family-mono: 'Iosevka', 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
   /* Brand colors - Light mode */
   --vp-c-brand-1: #f05340;
   --vp-c-brand-2: #d94432;
@@ -42,7 +53,28 @@
 /* Code block styling */
 .vp-doc div[class*='language-'] code {
   font-size: 0.95em;
-  line-height: 1.8;
+  font-weight: 500;
+  line-height: 1.9;
+}
+
+/* Inline code styling */
+.vp-doc :not(pre) > code {
+  font-size: 0.9em;
+  font-weight: 500;
+  padding: 0.2em 0.4em;
+}
+
+/* Hero section typography */
+.VPHero .name {
+  font-weight: 700;
+}
+
+.VPHero .text {
+  font-weight: 600;
+}
+
+.VPHero .tagline {
+  font-weight: 400;
 }
 
 /* ==========================================
