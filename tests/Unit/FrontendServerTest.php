@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use TestFlowLabs\PestPluginBridge\FrontendDefinition;
 use TestFlowLabs\PestPluginBridge\FrontendServer;
+use TestFlowLabs\PestPluginBridge\FrontendDefinition;
 
 describe('FrontendServer', function (): void {
     describe('constructor', function (): void {
