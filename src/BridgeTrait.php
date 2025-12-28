@@ -41,7 +41,7 @@ trait BridgeTrait
 
         // Use 30s timeout for cold-start scenarios (Vite compiles on first request)
         $defaultOptions = ['timeout' => 30000];
-        $mergedOptions = array_merge($defaultOptions, $options);
+        $mergedOptions  = array_merge($defaultOptions, $options);
 
         return $this->visit($fullUrl, $mergedOptions);
     }

@@ -156,7 +156,7 @@ final class FrontendServer
         // Add custom environment variables from definition
         // These allow project-specific API endpoints (e.g., /v1/admin/, /v1/retailer/)
         foreach ($this->definition->getCustomEnvVars() as $name => $pathSuffix) {
-            $apiVariables[$name] = rtrim($apiUrl, '/') . '/' . ltrim($pathSuffix, '/');
+            $apiVariables[$name] = rtrim($apiUrl, '/').'/'.ltrim($pathSuffix, '/');
         }
 
         // Merge with inherited environment, API variables take precedence
