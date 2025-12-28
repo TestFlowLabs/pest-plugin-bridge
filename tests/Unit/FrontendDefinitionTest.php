@@ -91,6 +91,80 @@ describe('FrontendDefinition', function (): void {
         });
     });
 
+    describe('warmup', function (): void {
+        test('sets warmup delay in milliseconds', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->warmup(3000);
+
+            expect($definition->getWarmupDelayMs())->toBe(3000);
+        });
+
+        test('has default warmup delay of zero', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+
+            expect($definition->getWarmupDelayMs())->toBe(0);
+        });
+
+        test('returns self for fluent chaining', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $result     = $definition->warmup(5000);
+
+            expect($result)->toBe($definition);
+        });
+    });
+
+    describe('envFile', function (): void {
+        test('sets env file path', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->envFile('/path/to/.env.test');
+
+            expect($definition->getEnvFilePath())->toBe('/path/to/.env.test');
+        });
+
+        test('has default env file path of null', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+
+            expect($definition->getEnvFilePath())->toBeNull();
+        });
+
+        test('returns self for fluent chaining', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $result     = $definition->envFile('/path/to/.env');
+
+            expect($result)->toBe($definition);
+        });
+    });
+
+    describe('env', function (): void {
+        test('sets custom environment variables', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->env([
+                'VITE_API_URL'      => '/api/',
+                'VITE_ADMIN_API'    => '/api/admin/',
+                'VITE_RETAILER_API' => '/api/retailer/',
+            ]);
+
+            expect($definition->getCustomEnvVars())->toBe([
+                'VITE_API_URL'      => '/api/',
+                'VITE_ADMIN_API'    => '/api/admin/',
+                'VITE_RETAILER_API' => '/api/retailer/',
+            ]);
+        });
+
+        test('has default empty custom env vars', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+
+            expect($definition->getCustomEnvVars())->toBe([]);
+        });
+
+        test('returns self for fluent chaining', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $result     = $definition->env(['VITE_API' => '/api/']);
+
+            expect($result)->toBe($definition);
+        });
+    });
+
     describe('fluent chaining', function (): void {
         test('supports full fluent chain', function (): void {
             $definition = (new FrontendDefinition('http://localhost:3000', 'main'))
@@ -102,6 +176,30 @@ describe('FrontendDefinition', function (): void {
             expect($definition->getServeCommand())->toBe('npm run dev');
             expect($definition->getWorkingDirectory())->toBe('../frontend');
             expect($definition->getReadyPattern())->toBe('VITE.*ready');
+        });
+
+        test('supports full fluent chain with all options', function (): void {
+            $definition = (new FrontendDefinition('http://localhost:5173', 'admin'))
+                ->serve('npm run dev', cwd: '../frontend')
+                ->readyWhen('VITE.*ready')
+                ->warmup(3000)
+                ->envFile('/path/to/.env.test')
+                ->env([
+                    'VITE_BACKEND_URL' => '/',
+                    'VITE_ADMIN_API'   => '/v1/admin/',
+                ]);
+
+            expect($definition->url)->toBe('http://localhost:5173');
+            expect($definition->name)->toBe('admin');
+            expect($definition->getServeCommand())->toBe('npm run dev');
+            expect($definition->getWorkingDirectory())->toBe('../frontend');
+            expect($definition->getReadyPattern())->toBe('VITE.*ready');
+            expect($definition->getWarmupDelayMs())->toBe(3000);
+            expect($definition->getEnvFilePath())->toBe('/path/to/.env.test');
+            expect($definition->getCustomEnvVars())->toBe([
+                'VITE_BACKEND_URL' => '/',
+                'VITE_ADMIN_API'   => '/v1/admin/',
+            ]);
         });
     });
 });
