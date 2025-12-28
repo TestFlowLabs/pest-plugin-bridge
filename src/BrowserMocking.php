@@ -71,6 +71,9 @@ trait BrowserMocking
      */
     public function bridgeWithMocks(string $path, ?string $frontend = null, array $options = []): AwaitableWebpage
     {
+        // Ensure frontend servers are started (lazy initialization)
+        FrontendManager::instance()->startAll();
+
         // Connect to Playwright
         Client::instance()->connectTo(
             ServerManager::instance()->playwright()->url(),
