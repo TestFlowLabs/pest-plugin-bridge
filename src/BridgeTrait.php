@@ -119,7 +119,7 @@ trait BridgeTrait
 (function() {
     'use strict';
 
-    var mocks = JSON.parse('$escapedMocksJson');
+    var mocks = JSON.parse('{$escapedMocksJson}');
 
     function matchUrl(pattern, url) {
         var escaped = pattern.replace(/[.+?^\${}()|[\\]\\\\]/g, '\\\\$&');
