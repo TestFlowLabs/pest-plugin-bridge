@@ -3,7 +3,9 @@
 [![Tests](https://github.com/TestFlowLabs/pest-plugin-bridge/actions/workflows/tests.yml/badge.svg)](https://github.com/TestFlowLabs/pest-plugin-bridge/actions)
 [![License](https://img.shields.io/github/license/TestFlowLabs/pest-plugin-bridge)](LICENSE)
 
-A Pest plugin for browser testing external frontend applications.
+Test external frontends from Laravel — write browser tests in PHP for Vue, React, Nuxt, Next.js.
+
+**[Documentation](https://pest-plugin-bridge.testflowlabs.dev)** | **[Getting Started](https://pest-plugin-bridge.testflowlabs.dev/getting-started/quick-start)**
 
 This plugin extends [Pest's browser testing](https://pestphp.com/docs/browser-testing) capabilities to work with **external/detached frontend applications** - such as a Vue, React, or Angular app running on a separate server.
 

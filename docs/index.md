@@ -5,6 +5,9 @@ hero:
   name: Pest Plugin Bridge
   text: Test External Frontends from Laravel
   tagline: Write browser tests in PHP for Vue, React, Nuxt, Next.js — no JavaScript test code required
+  image:
+    src: /logo.svg
+    alt: Pest Plugin Bridge Logo
   actions:
     - theme: brand
       text: Get Started
