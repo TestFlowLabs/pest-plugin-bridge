@@ -266,55 +266,102 @@ lsof -ti:3000 | xargs kill -9
 
 ### Database Configuration
 
+#### Laravel Trait Compatibility
+
+| Trait | Mechanism | Commits Data? | Browser Tests? |
+|-------|-----------|---------------|----------------|
+| `RefreshDatabase` | Transaction wrap | ❌ No | ❌ **Does NOT work** |
+| `LazilyRefreshDatabase` | Same, lazy init | ❌ No | ❌ **Does NOT work** |
+| `DatabaseTransactions` | Transaction only | ❌ No | ❌ **Does NOT work** |
+| `DatabaseMigrations` | `migrate:fresh` each test | ✅ Yes | ✅ **Works** (slower) |
+| `DatabaseTruncation` | First: migrate, then: TRUNCATE | ✅ Yes | ✅ **Works** (faster) |
+
 ::: danger SQLite In-Memory Not Supported
 SQLite in-memory databases (`:memory:`) **do not work** with browser tests. Each database connection gets its own isolated in-memory database, so the frontend's API calls cannot see test data.
 :::
 
-::: warning RefreshDatabase Doesn't Work
-The `RefreshDatabase` trait uses database transactions for isolation. However, transaction data is only visible to the same connection. When your frontend makes API calls, those use separate database connections that cannot see uncommitted transaction data.
+::: warning Transaction-Based Traits Don't Work
+`RefreshDatabase`, `LazilyRefreshDatabase`, and `DatabaseTransactions` use database transactions for isolation. Transaction data is only visible to the same connection. When your frontend makes API calls, those use separate database connections that cannot see uncommitted transaction data.
 :::
 
-**Recommended Setup:**
+#### Recommended Setup
 
-**1. Configure database in `phpunit.xml`** (recommended):
+**1. Configure database in `phpunit.xml`:**
 
 ```xml
 <phpunit>
     <php>
         <env name="DB_CONNECTION" value="sqlite"/>
-        <!-- Use file database for browser tests (not :memory:) -->
+        <!-- File-based database (not :memory:) -->
         <env name="DB_DATABASE" value="database/database.sqlite"/>
     </php>
 </phpunit>
 ```
 
-**Or use `.env.testing`:**
-
-```ini
-# .env.testing
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
-
-# Or use MySQL/PostgreSQL
-DB_CONNECTION=mysql
-DB_DATABASE=your_app_testing
-```
-
-**2. Use `DatabaseMigrations` or `DatabaseTruncation` instead:**
+**2. Use `DatabaseTruncation` (recommended) or `DatabaseMigrations`:**
 
 ```php
 // tests/Pest.php
-use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 
-// Option A: Migrate fresh for each test (slower but clean)
-pest()->use(DatabaseMigrations::class)->in('Browser');
-
-// Option B: Truncate tables (faster)
-pest()->use(DatabaseTruncation::class)->in('Browser');
+// Truncation is faster - migrate:fresh once, then TRUNCATE tables
+pest()->extends(TestCase::class)
+    ->use(DatabaseTruncation::class)
+    ->in('Browser');
 ```
 
-**3. Or use unique test data per test:**
+Or use `DatabaseMigrations` if you need completely fresh schema each test:
+
+```php
+use Illuminate\Foundation\Testing\DatabaseMigrations;
+
+// Slower - runs migrate:fresh for each test
+pest()->extends(TestCase::class)
+    ->use(DatabaseMigrations::class)
+    ->in('Browser');
+```
+
+#### Using Same Database for Unit and Browser Tests
+
+You CAN use the same database for all tests, but with different traits:
+
+```php
+// tests/Pest.php
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTruncation;
+
+// Unit/Feature tests: RefreshDatabase (fast, transaction-based)
+pest()->extends(TestCase::class)
+    ->use(RefreshDatabase::class)
+    ->in('Feature', 'Unit');
+
+// Browser tests: DatabaseTruncation (commits data, visible to API)
+pest()->extends(TestCase::class)
+    ->use(DatabaseTruncation::class)
+    ->in('Browser');
+```
+
+#### Do I Need a Separate .env File?
+
+::: tip No Separate .env Needed
+Unlike Laravel Dusk (which ran a separate PHP process for the server), Pest Plugin Bridge uses pest-plugin-browser which runs Laravel **in-process** via amphp. You don't need a separate `.env.dusk.local` file.
+:::
+
+Configure your test database in `phpunit.xml` - this works for both unit and browser tests:
+
+```xml
+<phpunit>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value="database/database.sqlite"/>
+    </php>
+</phpunit>
+```
+
+#### Alternative: Unique Test Data
+
+If you prefer not to truncate/migrate, use unique identifiers:
 
 ```php
 test('user can register', function () {
@@ -325,15 +372,6 @@ test('user can register', function () {
         // ...
 });
 ```
-
-**Why Dusk Used Separate .env.dusk:**
-
-Laravel Dusk traditionally used a separate `.env.dusk.local` file because of these same database isolation issues. With Pest Plugin Bridge, you have two options:
-
-1. **Use `.env.testing`** - Configure a persistent test database
-2. **Use unique data** - Generate unique identifiers for each test
-
-The key requirement is that your database must be accessible across multiple connections (ruling out in-memory SQLite and transaction-based isolation).
 
 ## Configuration Summary
 
@@ -346,15 +384,21 @@ use TestFlowLabs\PestPluginBridge\Bridge;
 Bridge::setDefault('http://localhost:3000');
 ```
 
-**`.env.testing`** (for Laravel itself):
+**`phpunit.xml`** (database configuration):
+```xml
+<phpunit>
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value="database/database.sqlite"/>
+        <env name="SESSION_DRIVER" value="array"/>
+    </php>
+</phpunit>
+```
+
+**`.env.testing`** (optional, for Sanctum SPA auth):
 ```ini
 APP_URL=http://localhost:8000
-
-# IMPORTANT: Use file-based SQLite or real database (not :memory:)
-DB_CONNECTION=sqlite
-DB_DATABASE=/absolute/path/to/test.sqlite
-
-# Sanctum (if using SPA auth)
 SANCTUM_STATEFUL_DOMAINS=localhost:3000
 SESSION_DOMAIN=localhost
 ```
