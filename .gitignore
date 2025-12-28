@@ -14,3 +14,15 @@ coverage/
 Thumbs.db
 *.log
 tests/Browser/Screenshots/
+
+# Playground projects
+playground/laravel-api/vendor/
+playground/laravel-api/node_modules/
+playground/laravel-api/.env
+playground/laravel-api/database/database.sqlite
+playground/laravel-api/storage/*.key
+playground/laravel-api/storage/logs/
+playground/nuxt-app/node_modules/
+playground/nuxt-app/.nuxt/
+playground/nuxt-app/.output/
+playground/.gitkeep
