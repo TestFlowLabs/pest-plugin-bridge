@@ -116,7 +116,7 @@ This is particularly useful for:
 - Development servers that need time to compile initial bundles
 
 ::: info Vite Cold-Start
-Vite compiles JavaScript modules on-demand when the browser first requests them. The `bridge()` method already uses a 30-second timeout by default to handle this. Use `warmup()` only if you experience consistent timeouts with very large applications.
+Vite compiles JavaScript modules on-demand when the browser first requests them. The `bridge()` method already uses a 30-second timeout by default to handle this. Use `warmup()` only if you experience consistent timeouts with very large applications. See [Troubleshooting: Vite Cold-Start Timeout](/guide/troubleshooting#vite-cold-start-timeout) for more details.
 :::
 
 ### Child Frontends

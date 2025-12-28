@@ -54,11 +54,11 @@ The main entry point for configuration:
 ```php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-// Set default frontend URL
-Bridge::setDefault('http://localhost:3000');
+// Add default frontend URL
+Bridge::add('http://localhost:3000');
 
 // Add named frontends
-Bridge::frontend('admin', 'http://localhost:3001');
+Bridge::add('http://localhost:3001', 'admin');
 
 // Get URL
 Bridge::url();           // default frontend URL
@@ -81,7 +81,7 @@ Bridge::reset();
 Frontends can be started automatically:
 
 ```php
-Bridge::setDefault('http://localhost:3000')
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('ready|localhost');
 ```
@@ -99,7 +99,7 @@ Servers are stopped automatically via shutdown handler.
 // Vite reports "ready" when HTTP server starts
 // But actual JS compilation happens on first browser request!
 
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready');
 
@@ -119,7 +119,7 @@ $this->bridge('/')->assertPathIs('/');  // Works with cold-start
 **Options for additional control:**
 ```php
 // Add extra warmup delay after server is ready (optional)
-Bridge::setDefault('http://localhost:5173')
+Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
     ->readyWhen('VITE.*ready')
     ->warmup(2000);  // Additional 2s delay
@@ -151,7 +151,7 @@ $this->bridge('/users', 'admin');
 ```php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-Bridge::setDefault('http://localhost:5173');
+Bridge::add('http://localhost:5173');
 ```
 
 ### With Automatic Server Management
@@ -162,7 +162,7 @@ use TestFlowLabs\PestPluginBridge\BridgeTrait;
 use Tests\TestCase;
 
 uses(TestCase::class, BridgeTrait::class)
-    ->beforeAll(fn () => Bridge::setDefault('http://localhost:3000')
+    ->beforeAll(fn () => Bridge::add('http://localhost:3000')
         ->serve('npm run dev', cwd: '../frontend')
         ->readyWhen('ready|localhost'))
     ->in('Browser');
@@ -279,12 +279,12 @@ URLs must be valid with scheme:
 
 ```php
 // Valid
-Bridge::setDefault('http://localhost:5173');
-Bridge::setDefault('https://staging.app.com');
+Bridge::add('http://localhost:5173');
+Bridge::add('https://staging.app.com');
 
 // Invalid - throws InvalidArgumentException
-Bridge::setDefault('localhost:5173');  // Missing scheme
-Bridge::setDefault('not-a-url');
+Bridge::add('localhost:5173');  // Missing scheme
+Bridge::add('not-a-url');
 ```
 
 ## Packagist

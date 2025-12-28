@@ -71,6 +71,10 @@ $this->bridge('/register')
     ->typeSlowly('input[name="name"]', 'John Doe', 20);
 ```
 
+::: tip Detailed Framework Guide
+For comprehensive explanation of `fill()` vs `typeSlowly()` behavior and complete working patterns for Vue/React, see [Best Practices: Vue/Nuxt Framework-Specific](/guide/best-practices#vue-nuxt-framework-specific-best-practices).
+:::
+
 ### Using Data Test IDs (Recommended)
 
 ```php

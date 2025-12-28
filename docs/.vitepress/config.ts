@@ -152,15 +152,6 @@ export default defineConfig({
             { text: 'Debugging', link: '/ci-cd/debugging' },
             { text: 'Advanced', link: '/ci-cd/advanced' }
           ]
-        },
-        {
-          text: 'Examples',
-          items: [
-            { text: 'Vue + Vite', link: '/examples/vue-vite' },
-            { text: 'Nuxt 3', link: '/examples/nuxt' },
-            { text: 'React', link: '/examples/react' },
-            { text: 'Authentication Flow', link: '/examples/authentication' }
-          ]
         }
       ]
     },

@@ -149,6 +149,10 @@ pest()->extends(TestCase::class)
 $this->bridge('/users')->assertSee($email);
 ```
 
+::: tip Comprehensive Database Guide
+For detailed explanation of database traits, transaction isolation, and recommended configurations, see [Connection Architecture: Database Configuration](/guide/connection#database-configuration).
+:::
+
 ## Form & Input Issues
 
 ### Form Submits Empty Values
@@ -165,6 +169,10 @@ $this->bridge('/users')->assertSee($email);
 // Use:
 ->typeSlowly('[data-testid="email"]', 'test@example.com')
 ```
+
+::: tip Framework-Specific Guide
+For detailed explanation of `fill()` vs `typeSlowly()` behavior with Vue, React, and other reactive frameworks, see [Best Practices: Vue/Nuxt Framework-Specific](/guide/best-practices#vue-nuxt-framework-specific-best-practices).
+:::
 
 ### First Characters Lost When Typing
 

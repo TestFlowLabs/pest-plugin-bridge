@@ -348,6 +348,10 @@ pest()->extends(TestCase::class)
     ->in('Browser');
 ```
 
+::: tip Database Configuration Guide
+For comprehensive coverage of database traits, transaction isolation, and recommended configurations, see [Connection Architecture: Database Configuration](/guide/connection#database-configuration).
+:::
+
 ### Verify Results Via UI Instead of Database
 
 Since database isolation doesn't work with external servers, verify results through UI assertions:
