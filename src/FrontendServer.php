@@ -59,7 +59,7 @@ final class FrontendServer
             function (string $type, string $data) use ($pattern, &$output): bool {
                 $output .= $data;
 
-                return preg_match("/{$pattern}/i", $output) === 1;
+                return preg_match("#{$pattern}#i", $output) === 1;
             }
         );
 
