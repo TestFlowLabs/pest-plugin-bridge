@@ -55,7 +55,7 @@ pest()->extends(TestCase::class)
     ->in('Browser');
 
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: 'frontend');
+    ->serve('npm run dev', cwd: '../frontend');
 ```
 
 ## Database Trait Compatibility
@@ -95,9 +95,21 @@ on: [push, pull_request]
 jobs:
   browser-tests:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout API
+        uses: actions/checkout@v4
+        with:
+          path: backend
+
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+        with:
+          repository: your-org/frontend-repo
+          path: frontend
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -120,7 +132,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Install frontend dependencies
-        run: cd frontend && npm ci
+        working-directory: frontend
+        run: npm ci
 
       - name: Prepare Laravel
         run: |
