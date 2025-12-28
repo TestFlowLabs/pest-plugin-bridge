@@ -78,22 +78,22 @@ export default defineNuxtConfig({
 })
 ```
 
-```env [React / Vite]
+```ini [React / Vite]
 # .env
 VITE_API_URL=http://localhost:8000
 ```
 
-```env [Next.js]
+```ini [Next.js]
 # .env.local
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-```env [Vue CLI]
+```ini [Vue CLI]
 # .env
 VUE_APP_API_URL=http://localhost:8000
 ```
 
-```env [Angular]
+```ini [Angular]
 # environment.ts
 export const environment = {
   apiUrl: 'http://localhost:8000'
@@ -243,7 +243,7 @@ Note: The Laravel API is still started automatically by pest-plugin-browser.
 
 **Solution**:
 1. Check `SESSION_DOMAIN` in `.env`:
-   ```env
+   ```ini
    SESSION_DOMAIN=localhost
    ```
 2. Ensure Sanctum stateful domains include your frontend
@@ -288,7 +288,7 @@ Bridge::setDefault('http://localhost:3000');
 ```
 
 **`.env.testing`** (for Laravel itself):
-```env
+```ini
 APP_URL=http://localhost:8000
 
 # Sanctum (if using SPA auth)
@@ -298,7 +298,7 @@ SESSION_DOMAIN=localhost
 
 ### Frontend (example for Vite-based apps)
 
-```env
+```ini
 # .env or .env.local
 
 VITE_API_URL=http://localhost:8000

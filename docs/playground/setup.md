@@ -54,7 +54,7 @@ php artisan migrate --seed
 
 The playground uses SQLite by default:
 
-```env
+```ini
 # .env
 DB_CONNECTION=sqlite
 ```
@@ -63,7 +63,7 @@ This creates a `database/database.sqlite` file automatically.
 
 For MySQL/PostgreSQL, update the `.env` file:
 
-```env
+```ini
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
@@ -150,7 +150,7 @@ Cleanup is automatic via the plugin's shutdown handler - no `afterAll` needed.
 
 ### Laravel API Environment
 
-```env
+```ini
 # playground/laravel-api/.env
 APP_URL=http://localhost:8000
 SANCTUM_STATEFUL_DOMAINS=localhost:3000
