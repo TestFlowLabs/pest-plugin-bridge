@@ -71,6 +71,20 @@ trait BrowserMocking
      */
     public function bridgeWithMocks(string $path, ?string $frontend = null, array $options = []): AwaitableWebpage
     {
+        die("DEBUG: bridgeWithMocks called with path: $path");
+
+        // DEBUG: Check if mocks are registered
+        $hasMocks = self::hasBrowserMocks();
+        $mockCount = count(self::$browserMocks);
+        file_put_contents('/tmp/bridge_mock_debug.log', sprintf(
+            "[%s] bridgeWithMocks called - path: %s, hasMocks: %s, mockCount: %d, mocks: %s\n",
+            date('Y-m-d H:i:s'),
+            $path,
+            $hasMocks ? 'true' : 'false',
+            $mockCount,
+            json_encode(self::$browserMocks)
+        ), FILE_APPEND);
+
         // Ensure frontend servers are started (lazy initialization)
         FrontendManager::instance()->startAll();
 
@@ -99,7 +113,19 @@ trait BrowserMocking
 
         // Add our mock interceptor script
         if (self::hasBrowserMocks()) {
-            $context->addInitScript($this->generateMockScript());
+            $mockScript = $this->generateMockScript();
+            file_put_contents('/tmp/bridge_mock_debug.log', sprintf(
+                "[%s] Adding init script (length: %d bytes)\nScript preview: %.500s...\n",
+                date('Y-m-d H:i:s'),
+                strlen($mockScript),
+                $mockScript
+            ), FILE_APPEND);
+            $context->addInitScript($mockScript);
+        } else {
+            file_put_contents('/tmp/bridge_mock_debug.log', sprintf(
+                "[%s] WARNING: No browser mocks registered, skipping init script\n",
+                date('Y-m-d H:i:s')
+            ), FILE_APPEND);
         }
 
         // Build URL and navigate
@@ -146,89 +172,97 @@ trait BrowserMocking
     {
         $mocksJson = json_encode(self::$browserMocks, JSON_THROW_ON_ERROR);
 
-        $script = <<<'MOCKSCRIPT'
-console.log('[Bridge Mock] Script starting...');
-(function() {
-    console.log('[Bridge Mock] Inside IIFE');
-    const mocks = __MOCKS_PLACEHOLDER__;
-    console.log('[Bridge Mock] Mocks loaded:', JSON.stringify(mocks));
+        // Escape special characters in JSON for JavaScript string embedding
+        $escapedMocksJson = addslashes($mocksJson);
 
+        // Simple debug script first to verify init script is running at all
+        $script = <<<MOCKSCRIPT
+// Bridge Mock Interceptor - Minimal Debug Version
+console.log('[Bridge Mock] Init script executed!');
+
+(function() {
+    'use strict';
+
+    // Parse mocks from escaped JSON string
+    var mocks = JSON.parse('$escapedMocksJson');
+    console.log('[Bridge Mock] Loaded ' + Object.keys(mocks).length + ' mock patterns');
+
+    // Simple URL matching with wildcard support
     function matchUrl(pattern, url) {
-        const escaped = pattern
-            .replace(/[.+?^${}()|[\]]/g, '\\$&')
-            .replace(/\*/g, '.*');
-        const regex = new RegExp('^' + escaped + '$');
-        return regex.test(url);
+        // Escape regex special chars except *
+        var escaped = pattern.replace(/[.+?^\${}()|[\\]\\\\]/g, '\\\\$&');
+        // Convert * to .*
+        var regexPattern = '^' + escaped.replace(/\\*/g, '.*') + '\$';
+        return new RegExp(regexPattern).test(url);
     }
 
     function findMock(url) {
-        for (const [pattern, config] of Object.entries(mocks)) {
-            if (matchUrl(pattern, url)) {
-                return config;
+        var patterns = Object.keys(mocks);
+        for (var i = 0; i < patterns.length; i++) {
+            if (matchUrl(patterns[i], url)) {
+                console.log('[Bridge Mock] Match found for: ' + url);
+                return mocks[patterns[i]];
             }
         }
         return null;
     }
 
-    const originalFetch = window.fetch;
-    window.fetch = async function(input, init) {
-        const url = typeof input === 'string' ? input : input.url;
-        const mock = findMock(url);
+    // Patch fetch
+    var originalFetch = window.fetch;
+    window.fetch = function(input, init) {
+        var url = typeof input === 'string' ? input : input.url;
+        console.log('[Bridge Mock] fetch() called with URL: ' + url);
 
+        var mock = findMock(url);
         if (mock) {
-            console.log('[Bridge Mock] Intercepted fetch:', url);
-            return new Response(
-                JSON.stringify(mock.body || {}),
-                {
-                    status: mock.status || 200,
-                    headers: new Headers({
-                        'Content-Type': 'application/json',
-                        ...(mock.headers || {})
-                    })
-                }
-            );
+            console.log('[Bridge Mock] Returning mock response for: ' + url);
+            var body = JSON.stringify(mock.body || {});
+            var status = mock.status || 200;
+            return Promise.resolve(new Response(body, {
+                status: status,
+                headers: { 'Content-Type': 'application/json' }
+            }));
         }
 
         return originalFetch.apply(this, arguments);
     };
 
-    const originalXHROpen = XMLHttpRequest.prototype.open;
-    const originalXHRSend = XMLHttpRequest.prototype.send;
+    // Patch XMLHttpRequest
+    var originalOpen = XMLHttpRequest.prototype.open;
+    var originalSend = XMLHttpRequest.prototype.send;
 
     XMLHttpRequest.prototype.open = function(method, url) {
-        this._mockUrl = url;
-        this._mockConfig = findMock(url);
-        return originalXHROpen.apply(this, arguments);
+        this.__mockUrl = url;
+        this.__mockConfig = findMock(url);
+        return originalOpen.apply(this, arguments);
     };
 
     XMLHttpRequest.prototype.send = function(body) {
-        if (this._mockConfig) {
-            console.log('[Bridge Mock] Intercepted XHR:', this._mockUrl);
-            const mock = this._mockConfig;
-            const self = this;
+        if (this.__mockConfig) {
+            console.log('[Bridge Mock] XHR intercepted: ' + this.__mockUrl);
+            var mock = this.__mockConfig;
+            var xhr = this;
 
-            Object.defineProperty(this, 'status', { value: mock.status || 200, writable: false });
-            Object.defineProperty(this, 'statusText', { value: 'OK', writable: false });
-            Object.defineProperty(this, 'responseText', { value: JSON.stringify(mock.body || {}), writable: false });
-            Object.defineProperty(this, 'response', { value: JSON.stringify(mock.body || {}), writable: false });
-            Object.defineProperty(this, 'readyState', { value: 4, writable: false });
+            Object.defineProperty(xhr, 'status', { value: mock.status || 200 });
+            Object.defineProperty(xhr, 'statusText', { value: 'OK' });
+            Object.defineProperty(xhr, 'responseText', { value: JSON.stringify(mock.body || {}) });
+            Object.defineProperty(xhr, 'response', { value: JSON.stringify(mock.body || {}) });
+            Object.defineProperty(xhr, 'readyState', { value: 4 });
 
             setTimeout(function() {
-                if (self.onreadystatechange) self.onreadystatechange();
-                if (self.onload) self.onload();
+                if (xhr.onreadystatechange) xhr.onreadystatechange();
+                if (xhr.onload) xhr.onload();
             }, 0);
-
             return;
         }
-
-        return originalXHRSend.apply(this, arguments);
+        return originalSend.apply(this, arguments);
     };
 
-    console.log('[Bridge Mock] Interceptors installed for', Object.keys(mocks).length, 'patterns');
+    console.log('[Bridge Mock] Interceptors installed successfully');
 })();
 MOCKSCRIPT;
 
-        return str_replace('__MOCKS_PLACEHOLDER__', $mocksJson, $script);
+        return $script;
     }
 
     /**
