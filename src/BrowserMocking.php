@@ -147,8 +147,11 @@ trait BrowserMocking
         $mocksJson = json_encode(self::$browserMocks, JSON_THROW_ON_ERROR);
 
         $script = <<<'MOCKSCRIPT'
+console.log('[Bridge Mock] Script starting...');
 (function() {
+    console.log('[Bridge Mock] Inside IIFE');
     const mocks = __MOCKS_PLACEHOLDER__;
+    console.log('[Bridge Mock] Mocks loaded:', JSON.stringify(mocks));
 
     function matchUrl(pattern, url) {
         const escaped = pattern
