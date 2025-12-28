@@ -8,6 +8,9 @@ import BidirectionalDiagram from './components/BidirectionalDiagram.vue'
 import TestFlowDiagram from './components/TestFlowDiagram.vue'
 import CIFlowDiagram from './components/CIFlowDiagram.vue'
 import MemoryProblemDiagram from './components/MemoryProblemDiagram.vue'
+import VisualRegressionDiagram from './components/VisualRegressionDiagram.vue'
+import HttpFakingChallengeDiagram from './components/HttpFakingChallengeDiagram.vue'
+import HttpFakingSolutionDiagram from './components/HttpFakingSolutionDiagram.vue'
 import HomeFeatures from './components/HomeFeatures.vue'
 
 export default {
@@ -19,6 +22,9 @@ export default {
     app.component('TestFlowDiagram', TestFlowDiagram)
     app.component('CIFlowDiagram', CIFlowDiagram)
     app.component('MemoryProblemDiagram', MemoryProblemDiagram)
+    app.component('VisualRegressionDiagram', VisualRegressionDiagram)
+    app.component('HttpFakingChallengeDiagram', HttpFakingChallengeDiagram)
+    app.component('HttpFakingSolutionDiagram', HttpFakingSolutionDiagram)
     app.component('HomeFeatures', HomeFeatures)
   }
 } satisfies Theme

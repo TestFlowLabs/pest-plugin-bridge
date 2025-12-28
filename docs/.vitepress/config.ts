@@ -136,6 +136,7 @@ export default defineConfig({
             { text: 'Browser Options', link: '/guide/browser-options' },
             { text: 'Debugging', link: '/guide/debugging' },
             { text: 'Visual Regression', link: '/guide/visual-regression' },
+            { text: 'HTTP Faking', link: '/guide/http-faking' },
             { text: 'Best Practices', link: '/guide/best-practices' },
             { text: 'Performance', link: '/guide/performance' },
             { text: 'Troubleshooting', link: '/guide/troubleshooting' },

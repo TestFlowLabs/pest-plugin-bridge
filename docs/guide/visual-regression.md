@@ -6,22 +6,7 @@ Detect unintended visual changes in your application by comparing screenshots ag
 
 Visual regression testing captures screenshots of your pages and compares them pixel-by-pixel against previously saved "baseline" images.
 
-```
-┌─────────────────┐     Compare     ┌─────────────────┐
-│    Baseline     │◄───────────────►│    Current      │
-│   (expected)    │                 │   (actual)      │
-└─────────────────┘                 └─────────────────┘
-         │                                   │
-         └───────────┬───────────────────────┘
-                     ▼
-              ┌─────────────┐
-              │   Match?    │
-              └─────────────┘
-                /         \
-               /           \
-        ✅ Pass          ❌ Fail
-                         (diff generated)
-```
+<VisualRegressionDiagram />
 
 **First Run:** No baseline exists → screenshot is saved as the new baseline
 **Subsequent Runs:** Screenshot is compared against the baseline → pass if identical, fail if different
