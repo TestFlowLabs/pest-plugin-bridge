@@ -42,7 +42,6 @@ tests/
 └── Unit/                  # Unit tests
 
 docs/                      # VitePress documentation site
-playground/                # Example projects (in repo)
 ```
 
 ## Core Architecture
@@ -292,3 +291,32 @@ Bridge::add('not-a-url');
 Published at: `testflowlabs/pest-plugin-bridge`
 
 Install: `composer require testflowlabs/pest-plugin-bridge --dev`
+
+## Playground Testing
+
+Integration testing uses external playground repositories:
+
+- **API:** [TestFlowLabs/pest-plugin-bridge-playground-api](https://github.com/TestFlowLabs/pest-plugin-bridge-playground-api) (Laravel)
+- **Frontend:** [TestFlowLabs/pest-plugin-bridge-playground-nuxt](https://github.com/TestFlowLabs/pest-plugin-bridge-playground-nuxt) (Nuxt)
+
+### Running Playground Tests
+
+Tests are triggered manually via GitHub Actions:
+
+```bash
+# Via GitHub CLI
+gh workflow run playground-browser-tests.yml
+
+# With custom branches
+gh workflow run playground-browser-tests.yml \
+  -f api_branch=feature-branch \
+  -f frontend_branch=main
+
+# With test filter
+gh workflow run playground-browser-tests.yml \
+  -f test_filter="login"
+```
+
+Or use the GitHub Actions UI: **Actions → Playground Browser Tests → Run workflow**
+
+The workflow (`.github/workflows/playground-browser-tests.yml`) checks out both repos, sets up the environment, and runs browser tests.
