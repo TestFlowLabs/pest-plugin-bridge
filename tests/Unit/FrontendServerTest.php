@@ -76,24 +76,4 @@ describe('FrontendServer', function (): void {
         });
     });
 
-    describe('definition properties', function (): void {
-        test('uses definition serve command', function (): void {
-            $definition = new FrontendDefinition('http://localhost:3000');
-            $definition->serve('npm run dev', cwd: '/path/to/frontend');
-
-            $server = new FrontendServer($definition);
-
-            // Server is created but not started
-            expect($server->isRunning())->toBeFalse();
-        });
-
-        test('uses definition ready pattern', function (): void {
-            $definition = new FrontendDefinition('http://localhost:3000');
-            $definition->serve('npm run dev')->readyWhen('VITE.*ready');
-
-            $server = new FrontendServer($definition);
-
-            expect($server->isRunning())->toBeFalse();
-        });
-    });
 });

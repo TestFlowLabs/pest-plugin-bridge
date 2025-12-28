@@ -64,26 +64,4 @@ describe('FrontendServer Integration', function (): void {
         !function_exists('curl_init'),
         'curl extension required'
     );
-
-    test('uses custom environment variables when configured', function (): void {
-        $definition = Bridge::add('http://localhost:3000')
-            ->serve('echo "ready"')
-            ->env([
-                'CUSTOM_API_URL'   => '/api/',
-                'CUSTOM_ADMIN_URL' => '/api/admin/',
-            ]);
-
-        expect($definition->getCustomEnvVars())->toBe([
-            'CUSTOM_API_URL'   => '/api/',
-            'CUSTOM_ADMIN_URL' => '/api/admin/',
-        ]);
-    });
-
-    test('uses warmup delay when configured', function (): void {
-        $definition = Bridge::add('http://localhost:3000')
-            ->serve('echo "ready"')
-            ->warmup(2000);
-
-        expect($definition->getWarmupDelayMs())->toBe(2000);
-    });
 });

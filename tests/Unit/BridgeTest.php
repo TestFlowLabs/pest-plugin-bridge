@@ -71,10 +71,6 @@ describe('Bridge::buildUrl', function (): void {
         expect(Bridge::buildUrl('/users', 'admin'))->toBe('http://localhost:5174/users');
     });
 
-    test('builds URL with leading slash path', function (): void {
-        expect(Bridge::buildUrl('/dashboard'))->toBe('http://localhost:5173/dashboard');
-    });
-
     test('builds URL without leading slash path', function (): void {
         expect(Bridge::buildUrl('about'))->toBe('http://localhost:5173/about');
     });
@@ -268,5 +264,48 @@ describe('Bridge child frontends', function (): void {
         Bridge::registerChild('http://localhost:3001', '/deep/path', 'deep');
 
         expect(Bridge::url('deep'))->toBe('http://localhost:3001/deep/path');
+    });
+
+    test('child with deep path nesting', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('/level1/level2/level3', 'deep');
+
+        expect(Bridge::url('deep'))->toBe('http://localhost:3001/level1/level2/level3');
+    });
+
+    test('child overwrites parent when using same name', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('/path', 'admin');
+
+        expect(Bridge::url('admin'))->toBe('http://localhost:3001/path');
+    });
+
+    test('child with empty path creates alias to parent', function (): void {
+        Bridge::add('http://localhost:3001', 'admin')
+            ->child('', 'alias');
+
+        expect(Bridge::url('alias'))->toBe('http://localhost:3001/');
+    });
+});
+
+describe('Bridge::add edge cases', function (): void {
+    test('overwrites existing default frontend', function (): void {
+        Bridge::add('http://localhost:3000');
+        Bridge::add('http://localhost:5173');
+
+        expect(Bridge::url())->toBe('http://localhost:5173');
+    });
+
+    test('overwrites existing named frontend', function (): void {
+        Bridge::add('http://localhost:3000', 'admin');
+        Bridge::add('http://localhost:5173', 'admin');
+
+        expect(Bridge::url('admin'))->toBe('http://localhost:5173');
+    });
+
+    test('handles URL with existing path segment', function (): void {
+        Bridge::add('http://localhost:3000/app');
+
+        expect(Bridge::buildUrl('/dashboard'))->toBe('http://localhost:3000/app/dashboard');
     });
 });

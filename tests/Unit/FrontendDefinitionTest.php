@@ -253,4 +253,39 @@ describe('FrontendDefinition', function (): void {
             expect($definition->getWarmupDelayMs())->toBe(2000);
         });
     });
+
+    describe('method overwriting', function (): void {
+        test('serve() overwrites previous serve command', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->serve('npm run old');
+            $definition->serve('npm run new', cwd: '/new/path');
+
+            expect($definition->getServeCommand())->toBe('npm run new');
+            expect($definition->getWorkingDirectory())->toBe('/new/path');
+        });
+
+        test('readyWhen() overwrites previous pattern', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->readyWhen('old-pattern');
+            $definition->readyWhen('new-pattern');
+
+            expect($definition->getReadyPattern())->toBe('new-pattern');
+        });
+
+        test('env() overwrites previous env vars', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->env(['OLD' => 'value']);
+            $definition->env(['NEW' => 'value']);
+
+            expect($definition->getCustomEnvVars())->toBe(['NEW' => 'value']);
+        });
+
+        test('warmup() overwrites previous delay', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->warmup(1000);
+            $definition->warmup(5000);
+
+            expect($definition->getWarmupDelayMs())->toBe(5000);
+        });
+    });
 });
