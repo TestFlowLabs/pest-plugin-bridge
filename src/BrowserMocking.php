@@ -151,7 +151,7 @@ console.log('[Bridge Mock] Init script executed!');
     'use strict';
 
     // Parse mocks from escaped JSON string
-    var mocks = JSON.parse('$escapedMocksJson');
+    var mocks = JSON.parse('{$escapedMocksJson}');
     console.log('[Bridge Mock] Loaded ' + Object.keys(mocks).length + ' mock patterns');
 
     // Simple URL matching with wildcard support
