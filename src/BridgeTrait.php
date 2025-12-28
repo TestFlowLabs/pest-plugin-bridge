@@ -9,9 +9,13 @@ namespace TestFlowLabs\PestPluginBridge;
  *
  * This trait extends Pest's browser testing capabilities to support
  * visiting external/detached frontend applications running on separate URLs.
+ *
+ * Includes BrowserMocking for intercepting browser-level HTTP requests.
  */
 trait BridgeTrait
 {
+    use BrowserMocking;
+
     /**
      * Bridge to an external frontend path.
      *
