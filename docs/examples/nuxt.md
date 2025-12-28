@@ -6,17 +6,17 @@ This example demonstrates testing a Nuxt 3 application with SSR considerations.
 
 ```
 my-project/
-├── backend/                 # Laravel API
-│   ├── app/
-│   ├── tests/
-│   │   └── Browser/         # Browser tests
-│   └── composer.json
-└── frontend/                # Nuxt 3
-    ├── pages/
-    ├── components/
-    ├── composables/
-    ├── nuxt.config.ts
-    └── package.json
++-- backend/                 # Laravel API
+|   +-- app/
+|   +-- tests/
+|   |   +-- Browser/         # Browser tests
+|   +-- composer.json
++-- frontend/                # Nuxt 3
+    +-- pages/
+    +-- components/
+    +-- composables/
+    +-- nuxt.config.ts
+    +-- package.json
 ```
 
 ## Nuxt Frontend Setup

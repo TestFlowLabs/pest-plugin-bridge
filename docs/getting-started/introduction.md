@@ -2,37 +2,136 @@
 
 Pest Plugin Bridge extends [Pest's browser testing capabilities](https://pestphp.com/docs/browser-testing) to work with **external frontend applications** running on separate servers.
 
-## What It Does
+## When Do You Need This?
 
-Test Vue, React, Nuxt, Next.js, and other frontend applications from your Laravel test suite:
+### The Architecture Question
+
+Ask yourself: **Where does your frontend live?**
+
+| Your Setup | Frontend Location | What to Use |
+|------------|-------------------|-------------|
+| Blade, Livewire, Inertia | Inside Laravel | Regular Pest `visit()` |
+| Vue/React SPA, Nuxt, Next.js | Separate project/server | **pest-plugin-bridge** `bridge()` |
+
+### The Problem: Two-Way Communication
+
+With a **headless Laravel API + separate frontend** architecture, you have a **bidirectional problem**:
+
+<BidirectionalDiagram />
+
+**Problem 1: Tests can't reach the frontend**
 
 ```php
-test('user can complete checkout', function () {
-    // Create test data in your Laravel app
-    $product = Product::factory()->create(['price' => 99.99]);
+// ❌ Fails - Laravel doesn't serve /shop
+$this->visit('/shop')->assertSee('Products');
 
-    // Test the external React frontend
-    $this->bridge('/shop')
-        ->click("[data-testid=\"product-{$product->id}\"]")
-        ->click('[data-testid="add-to-cart"]')
-        ->click('[data-testid="checkout"]')
-        ->assertSee('$99.99');
+// ❌ Hardcoded URL - fragile, not portable
+$this->visit('http://localhost:3000/shop')->assertSee('Products');
+```
+
+**Problem 2: Frontend can't reach the API**
+
+During tests, Laravel runs on a **dynamic port** (assigned by pest-plugin-browser). Your frontend's `.env` file has a static URL like `API_URL=http://localhost:8000` — but that's not where Laravel is running during tests!
+
+```javascript
+// Frontend code (Vue/Nuxt/React)
+const response = await fetch(process.env.API_URL + '/api/products');
+// ❌ Wrong port! Laravel isn't on :8000 during tests
+```
+
+### The Solution: Bidirectional Bridge
+
+pest-plugin-bridge solves **both directions**:
+
+**1. Tests → Frontend** via `bridge()`
+
+```php
+// ✅ Clean, configurable
+$this->bridge('/shop')->assertSee('Products');
+```
+
+**2. Frontend → API** via automatic environment injection
+
+When you use `->serve()`, the plugin automatically injects the correct API URL into your frontend:
+
+```php
+Bridge::setDefault('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend');
+```
+
+The plugin detects your framework and sets the right environment variable:
+
+| Framework | Environment Variable |
+|-----------|---------------------|
+| Vite | `VITE_API_URL` |
+| Nuxt 3 | `NUXT_PUBLIC_API_BASE` |
+| Next.js | `NEXT_PUBLIC_API_URL` |
+| Create React App | `REACT_APP_API_URL` |
+| Generic | `API_URL`, `BACKEND_URL` |
+
+Your frontend code works without changes:
+
+```javascript
+// Frontend automatically gets the correct test API URL
+const response = await fetch(import.meta.env.VITE_API_URL + '/api/products');
+// ✅ Points to Laravel's actual test port
+```
+
+## Real-World Scenarios
+
+### Headless Laravel + Vue/Nuxt SPA
+
+Your Laravel app is a pure API. Vue or Nuxt handles all UI rendering.
+
+```php
+test('user can browse products', function () {
+    $product = Product::factory()->create(['name' => 'Laptop']);
+
+    $this->bridge('/products')
+        ->assertSee('Laptop');
 });
 ```
 
-## Use Cases
+### Multi-Tenant with Separate Frontends
 
-### Single Page Applications (SPAs)
-Test Vue, React, or Angular SPAs that consume your Laravel API.
+Customer portal and admin panel are different apps:
 
-### Server-Side Rendered Apps
-Test Nuxt, Next.js, or other SSR frameworks with API backends.
+```php
+Bridge::setDefault('http://localhost:3000');           // Customer
+Bridge::frontend('admin', 'http://localhost:3001');    // Admin
 
-### Microservices
-Test frontend services that communicate with multiple backend services.
+test('customer sees their orders', function () {
+    $this->bridge('/orders')->assertSee('Your Orders');
+});
 
-### Legacy Modernization
-Test new frontend applications while maintaining backend tests in PHP.
+test('admin manages all orders', function () {
+    $this->bridge('/orders', 'admin')->assertSee('All Orders');
+});
+```
+
+### Gradual Migration
+
+Moving from Blade to React? Test both during transition:
+
+```php
+test('old checkout still works', function () {
+    $this->visit('/legacy/checkout')->assertSee('Pay Now');
+});
+
+test('new checkout works', function () {
+    $this->bridge('/checkout')->assertSee('Pay Now');
+});
+```
+
+### Microservices / Micro-Frontends
+
+Multiple frontend services consuming your APIs:
+
+```php
+Bridge::frontend('shop', 'http://localhost:3001');
+Bridge::frontend('blog', 'http://localhost:3002');
+Bridge::frontend('docs', 'http://localhost:3003');
+```
 
 ## How It Works
 

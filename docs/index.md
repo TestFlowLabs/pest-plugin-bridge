@@ -22,11 +22,35 @@ hero:
 <div class="feature-section">
 <div class="feature-text">
 
-## bridge() to External Frontends
+## For Headless Laravel + Separate Frontend
 
-**One method, full access.** Create test data in Laravel, test the UI in Vue/React/Nuxt. All with familiar Pest syntax.
+**Two apps, two ports, two problems.** Your tests can't reach the frontend. Your frontend can't find the API during tests.
 
-No JavaScript test files. No separate test runners. Just PHP.
+pest-plugin-bridge solves both: `bridge()` for test→frontend, automatic API URL injection for frontend→API.
+
+[See the full picture →](/getting-started/introduction)
+
+</div>
+<div class="feature-code">
+
+<ArchitectureDiagram />
+
+```php
+$this->bridge('/login')->assertSee('Welcome');
+// Frontend auto-receives API URL via VITE_API_URL
+```
+
+</div>
+</div>
+
+<div class="feature-section">
+<div class="feature-text">
+
+## One Test Suite, Full Stack Coverage
+
+**Create test data in Laravel, assert on frontend UI.** No JavaScript test files. No separate test runners.
+
+All with familiar Pest syntax and assertions.
 
 [Get started →](/getting-started/quick-start)
 

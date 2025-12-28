@@ -1,0 +1,90 @@
+name: Playground Browser Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_branch:
+        description: 'API branch'
+        required: false
+        default: 'main'
+        type: string
+      frontend_branch:
+        description: 'Frontend branch'
+        required: false
+        default: 'main'
+        type: string
+      test_filter:
+        description: 'Test filter (optional)'
+        required: false
+        default: ''
+        type: string
+
+jobs:
+  browser-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pest-plugin-bridge-playground-api
+
+    steps:
+      - name: Checkout API Playground
+        uses: actions/checkout@v4
+        with:
+          repository: TestFlowLabs/pest-plugin-bridge-playground-api
+          path: pest-plugin-bridge-playground-api
+          ref: ${{ inputs.api_branch }}
+
+      - name: Checkout Frontend Playground
+        uses: actions/checkout@v4
+        with:
+          repository: TestFlowLabs/pest-plugin-bridge-playground-nuxt
+          path: pest-plugin-bridge-playground-nuxt
+          ref: ${{ inputs.frontend_branch }}
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, curl, libxml, mbstring, zip, pdo_sqlite
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install npm dependencies (API)
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Install frontend dependencies
+        working-directory: pest-plugin-bridge-playground-nuxt
+        run: npm ci
+
+      - name: Prepare Laravel
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+          touch database/database.sqlite
+          php artisan migrate --force
+
+      - name: Run Browser Tests
+        run: |
+          if [ -n "${{ inputs.test_filter }}" ]; then
+            ./vendor/bin/pest tests/Browser --filter="${{ inputs.test_filter }}"
+          else
+            ./vendor/bin/pest tests/Browser
+          fi
+
+      - name: Upload screenshots on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-screenshots
+          path: pest-plugin-bridge-playground-api/tests/Browser/screenshots/
+          retention-days: 7

@@ -27,32 +27,32 @@ This creates a side-by-side structure in the runner. The rest of this page cover
 **Your GitHub Organization:**
 ```
 your-organization/
-├── api/                        # Laravel API repository
-│   ├── app/
-│   ├── tests/
-│   │   └── Browser/            # Browser tests live here
-│   ├── .github/
-│   │   └── workflows/
-│   │       └── browser-tests.yml  # CI runs from API repo
-│   ├── composer.json
-│   └── phpunit.xml
-│
-└── frontend/                   # Separate frontend repository
-    ├── src/
-    ├── package.json
-    └── nuxt.config.ts
++-- api/                        # Laravel API repository
+|   +-- app/
+|   +-- tests/
+|   |   +-- Browser/            # Browser tests live here
+|   +-- .github/
+|   |   +-- workflows/
+|   |       +-- browser-tests.yml  # CI runs from API repo
+|   +-- composer.json
+|   +-- phpunit.xml
+|
++-- frontend/                   # Separate frontend repository
+    +-- src/
+    +-- package.json
+    +-- nuxt.config.ts
 ```
 
 **After Checkout in CI Runner:**
 ```
 $GITHUB_WORKSPACE/
-├── backend/                    # API repo (path: backend)
-│   ├── app/
-│   ├── tests/Browser/
-│   └── composer.json
-└── frontend/                   # Frontend repo (path: frontend)
-    ├── src/
-    └── package.json
++-- backend/                    # API repo (path: backend)
+|   +-- app/
+|   +-- tests/Browser/
+|   +-- composer.json
++-- frontend/                   # Frontend repo (path: frontend)
+    +-- src/
+    +-- package.json
 ```
 
 ## Pest Configuration
@@ -319,9 +319,9 @@ gh workflow run browser-tests.yml \
 
 ```
 $GITHUB_WORKSPACE/
-├── backend/           # Laravel API
-├── frontend-web/      # Main web application
-└── frontend-admin/    # Admin dashboard
++-- backend/           # Laravel API
++-- frontend-web/      # Main web application
++-- frontend-admin/    # Admin dashboard
 ```
 
 ::: tip Consistent Naming

@@ -87,14 +87,14 @@ After installation, your project should look like this:
 
 ```
 your-project/
-├── tests/
-│   ├── Pest.php              # Plugin configuration
-│   ├── Browser/
-│   │   └── ExampleTest.php   # Browser tests
-│   ├── Feature/
-│   └── Unit/
-├── composer.json
-└── package.json              # Playwright dependency
++-- tests/
+|   +-- Pest.php              # Plugin configuration
+|   +-- Browser/
+|   |   +-- ExampleTest.php   # Browser tests
+|   +-- Feature/
+|   +-- Unit/
++-- composer.json
++-- package.json              # Playwright dependency
 ```
 
 ## Troubleshooting

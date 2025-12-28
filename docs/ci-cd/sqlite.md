@@ -6,21 +6,7 @@ When your tests need database access, SQLite is the simplest option for CI. Howe
 
 SQLite in-memory databases (`:memory:`) create a **separate database per connection**. When your frontend makes API calls, those use different database connections that can't see your test data.
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│  :memory: Problem                                                │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   Test Process              API Process                         │
-│   ┌─────────────┐          ┌─────────────┐                      │
-│   │ Connection A│          │ Connection B│                      │
-│   │ :memory: DB │          │ :memory: DB │  ← Different DB!     │
-│   │             │          │             │                      │
-│   │ User::create│          │ User::find  │  ← Can't see data    │
-│   └─────────────┘          └─────────────┘                      │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+<MemoryProblemDiagram />
 
 **Solution**: Use a file-based SQLite database.
 

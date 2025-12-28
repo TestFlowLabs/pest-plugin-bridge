@@ -6,18 +6,18 @@ This example demonstrates testing a Vue 3 application built with Vite.
 
 ```
 my-project/
-├── backend/                 # Laravel API
-│   ├── app/
-│   ├── tests/
-│   │   └── Browser/         # Browser tests here
-│   └── composer.json
-└── frontend/                # Vue + Vite
-    ├── src/
-    │   ├── components/
-    │   ├── views/
-    │   └── App.vue
-    ├── package.json
-    └── vite.config.js
++-- backend/                 # Laravel API
+|   +-- app/
+|   +-- tests/
+|   |   +-- Browser/         # Browser tests here
+|   +-- composer.json
++-- frontend/                # Vue + Vite
+    +-- src/
+    |   +-- components/
+    |   +-- views/
+    |   +-- App.vue
+    +-- package.json
+    +-- vite.config.js
 ```
 
 ## Frontend Setup

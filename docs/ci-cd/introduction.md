@@ -28,13 +28,13 @@ After this, your directory structure in CI looks like:
 
 ```
 $GITHUB_WORKSPACE/
-├── backend/                # Your Laravel API
-│   ├── app/
-│   ├── tests/Browser/
-│   └── composer.json
-└── frontend/               # Your frontend repo
-    ├── src/
-    └── package.json
++-- backend/                # Your Laravel API
+|   +-- app/
+|   +-- tests/Browser/
+|   +-- composer.json
++-- frontend/               # Your frontend repo
+    +-- src/
+    +-- package.json
 ```
 
 Then configure Bridge to use the frontend:
@@ -70,36 +70,7 @@ Each page is a **standalone module** you can combine:
 
 ## CI Execution Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        CI EXECUTION FLOW                                 │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │  GitHub Actions Runner                                           │   │
-│   │                                                                   │   │
-│   │   1. Checkout code (API + Frontend)                             │   │
-│   │   2. Install PHP + Composer dependencies                        │   │
-│   │   3. Install Node.js + npm dependencies                         │   │
-│   │   4. Install Playwright browsers (headless Chromium)            │   │
-│   │   5. Install frontend dependencies                              │   │
-│   │                                                                   │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-│                            ▼                                             │
-│                                                                          │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │  ./vendor/bin/pest tests/Browser                                 │   │
-│   │                                                                   │   │
-│   │   • Laravel API starts automatically (in-process via amphp)     │   │
-│   │   • Frontend dev server starts automatically (via serve())      │   │
-│   │   • Playwright browser runs tests headlessly                    │   │
-│   │   • Both servers shut down when tests complete                  │   │
-│   │                                                                   │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-│                                                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+<CIFlowDiagram />
 
 ## Prerequisites
 
@@ -115,30 +86,30 @@ Before setting up CI/CD, ensure you have:
 
 ```
 my-app/
-├── backend/                    # Laravel API
-│   ├── app/
-│   ├── tests/
-│   │   └── Browser/
-│   └── composer.json
-├── frontend/                   # Frontend app
-│   ├── src/
-│   └── package.json
-└── .github/
-    └── workflows/
-        └── browser-tests.yml
++-- backend/                    # Laravel API
+|   +-- app/
+|   +-- tests/
+|   |   +-- Browser/
+|   +-- composer.json
++-- frontend/                   # Frontend app
+|   +-- src/
+|   +-- package.json
++-- .github/
+    +-- workflows/
+        +-- browser-tests.yml
 ```
 
 ### Multi-Repository
 
 ```
 your-organization/
-├── api/                        # Laravel API repository
-│   ├── tests/Browser/          # Browser tests live here
-│   └── .github/workflows/      # CI runs from API repo
-│
-└── frontend/                   # Separate frontend repository
-    ├── src/
-    └── package.json
++-- api/                        # Laravel API repository
+|   +-- tests/Browser/          # Browser tests live here
+|   +-- .github/workflows/      # CI runs from API repo
+|
++-- frontend/                   # Separate frontend repository
+    +-- src/
+    +-- package.json
 ```
 
 ## Quick Start

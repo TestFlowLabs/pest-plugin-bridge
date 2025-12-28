@@ -12,11 +12,23 @@
   /* Fonts */
   --vp-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   --vp-font-family-mono: 'Iosevka', 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+
   /* Brand colors - Light mode */
   --vp-c-brand-1: #f05340;
   --vp-c-brand-2: #d94432;
   --vp-c-brand-3: #ff6b5a;
   --vp-c-brand-soft: rgba(240, 83, 64, 0.14);
+
+  /* Diagram colors - Light mode */
+  --diagram-bg: #ffffff;
+  --diagram-box-bg: #fafafa;
+  --diagram-box-border: #e5e5e5;
+  --diagram-text: #374151;
+  --diagram-text-muted: #6b7280;
+  --diagram-accent: #f05340;
+  --diagram-accent-light: #fee2e2;
+  --diagram-line: #d1d5db;
+  --diagram-arrow: #9ca3af;
 
   /* Button brand colors */
   --vp-button-brand-border: transparent;
@@ -48,18 +60,29 @@
 
   /* Home hero */
   --vp-home-hero-name-background: linear-gradient(135deg, #ff6b5a 0%, #ff8a7a 50%, #ffa07a 100%);
+
+  /* Diagram colors - Dark mode */
+  --diagram-bg: #1a1a1a;
+  --diagram-box-bg: #262626;
+  --diagram-box-border: #404040;
+  --diagram-text: #e5e5e5;
+  --diagram-text-muted: #a3a3a3;
+  --diagram-accent: #ff6b5a;
+  --diagram-accent-light: rgba(255, 107, 90, 0.2);
+  --diagram-line: #525252;
+  --diagram-arrow: #737373;
 }
 
 /* Code block styling */
 .vp-doc div[class*='language-'] code {
-  font-size: 0.95em;
+  font-size: 1.05em;
   font-weight: 500;
   line-height: 1.9;
 }
 
 /* Inline code styling */
 .vp-doc :not(pre) > code {
-  font-size: 0.9em;
+  font-size: 0.95em;
   font-weight: 500;
   padding: 0.2em 0.4em;
 }

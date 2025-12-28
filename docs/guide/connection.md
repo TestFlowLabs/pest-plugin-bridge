@@ -6,39 +6,7 @@ Understanding how the plugin connects your Laravel backend with external fronten
 
 When you run browser tests with Pest Plugin Bridge, three components interact:
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      TEST EXECUTION FLOW                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│   ┌──────────────────┐                                          │
-│   │  Laravel Backend │  ◄── You run tests here                  │
-│   │   (Port 8000)    │                                          │
-│   └────────┬─────────┘                                          │
-│            │                                                     │
-│            │ 1. Pest runs tests, launches Playwright            │
-│            ▼                                                     │
-│   ┌──────────────────┐                                          │
-│   │    Playwright    │  ◄── Automated browser                   │
-│   │     Browser      │                                          │
-│   └────────┬─────────┘                                          │
-│            │                                                     │
-│            │ 2. Browser visits your frontend URL                │
-│            ▼                                                     │
-│   ┌──────────────────┐                                          │
-│   │ External Frontend│  ◄── React, Vue, Nuxt, Next, Angular...  │
-│   │   (Port 3000)    │                                          │
-│   └────────┬─────────┘                                          │
-│            │                                                     │
-│            │ 3. Frontend makes API requests                     │
-│            ▼                                                     │
-│   ┌──────────────────┐                                          │
-│   │  Laravel Backend │  ◄── Same backend, now serving API       │
-│   │   (Port 8000)    │                                          │
-│   └──────────────────┘                                          │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+<TestFlowDiagram />
 
 ## Configuration Responsibilities
 
@@ -110,15 +78,15 @@ Best for: Same-domain or subdomain setups
 
 ```
 Frontend (localhost:3000)
-    │
-    ├── 1. GET /sanctum/csrf-cookie
-    │       └── Receives XSRF-TOKEN cookie
-    │
-    ├── 2. POST /login {email, password}
-    │       └── Session cookie set
-    │
-    └── 3. GET /api/user
-            └── Returns authenticated user
+    |
+    +-- 1. GET /sanctum/csrf-cookie
+    |       +-- Receives XSRF-TOKEN cookie
+    |
+    +-- 2. POST /login {email, password}
+    |       +-- Session cookie set
+    |
+    +-- 3. GET /api/user
+            +-- Returns authenticated user
 ```
 
 **Laravel Configuration** (`config/sanctum.php`):
@@ -144,12 +112,12 @@ Best for: Mobile apps, third-party integrations
 
 ```
 Frontend (localhost:3000)
-    │
-    ├── 1. POST /api/login {email, password}
-    │       └── Returns {token: "..."}
-    │
-    └── 2. GET /api/user
-            └── Header: Authorization: Bearer {token}
+    |
+    +-- 1. POST /api/login {email, password}
+    |       +-- Returns {token: "..."}
+    |
+    +-- 2. GET /api/user
+            +-- Header: Authorization: Bearer {token}
 ```
 
 **Laravel Configuration**:
@@ -175,15 +143,15 @@ Best for: OAuth, SSO, enterprise apps
 
 ```
 Frontend (localhost:3000)
-    │
-    ├── 1. Redirect to Auth0/Firebase/Okta
-    │       └── User authenticates
-    │
-    ├── 2. Callback with token/code
-    │       └── Exchange for JWT
-    │
-    └── 3. GET /api/user
-            └── Header: Authorization: Bearer {jwt}
+    |
+    +-- 1. Redirect to Auth0/Firebase/Okta
+    |       +-- User authenticates
+    |
+    +-- 2. Callback with token/code
+    |       +-- Exchange for JWT
+    |
+    +-- 3. GET /api/user
+            +-- Header: Authorization: Bearer {jwt}
 ```
 
 ## Running Tests

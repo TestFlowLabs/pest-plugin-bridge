@@ -6,19 +6,19 @@ This example demonstrates testing a React application (with Vite) using Pest Plu
 
 ```
 my-project/
-├── backend/                 # Laravel API
-│   ├── app/
-│   ├── tests/
-│   │   └── Browser/         # Browser tests
-│   └── composer.json
-└── frontend/                # React + Vite
-    ├── src/
-    │   ├── components/
-    │   ├── pages/
-    │   ├── hooks/
-    │   └── App.tsx
-    ├── package.json
-    └── vite.config.ts
++-- backend/                 # Laravel API
+|   +-- app/
+|   +-- tests/
+|   |   +-- Browser/         # Browser tests
+|   +-- composer.json
++-- frontend/                # React + Vite
+    +-- src/
+    |   +-- components/
+    |   +-- pages/
+    |   +-- hooks/
+    |   +-- App.tsx
+    +-- package.json
+    +-- vite.config.ts
 ```
 
 ## React Frontend Setup

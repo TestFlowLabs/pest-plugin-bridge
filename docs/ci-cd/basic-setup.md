@@ -9,18 +9,18 @@ This is the simplest CI workflow for pest-plugin-bridge. It assumes:
 
 ```
 my-app/
-├── backend/                    # Laravel API
-│   ├── app/
-│   ├── tests/
-│   │   └── Browser/            # Browser tests
-│   ├── composer.json
-│   └── phpunit.xml
-├── frontend/                   # Nuxt/React/Vue
-│   ├── src/
-│   └── package.json
-└── .github/
-    └── workflows/
-        └── browser-tests.yml
++-- backend/                    # Laravel API
+|   +-- app/
+|   +-- tests/
+|   |   +-- Browser/            # Browser tests
+|   +-- composer.json
+|   +-- phpunit.xml
++-- frontend/                   # Nuxt/React/Vue
+|   +-- src/
+|   +-- package.json
++-- .github/
+    +-- workflows/
+        +-- browser-tests.yml
 ```
 
 ## Pest Configuration
