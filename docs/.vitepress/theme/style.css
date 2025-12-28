@@ -1,12 +1,5 @@
 /* Custom theme styles for Pest Bridge Plugin */
-
-/* Google Fonts - Inter for base text */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
-/* Iosevka for code - from CDN */
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5/400.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5/500.css');
-@import url('https://cdn.jsdelivr.net/npm/@fontsource/iosevka@5/600.css');
+/* Note: Fonts are loaded via <link> tags in config.ts head for better performance */
 
 :root {
   /* Fonts */
