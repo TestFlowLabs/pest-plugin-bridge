@@ -185,7 +185,6 @@ final class FrontendServer
 
             curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
 
             if ($httpCode > 0) {
                 // Server is responding, now warm it up with a full page request
@@ -219,7 +218,6 @@ final class FrontendServer
         ]);
 
         curl_exec($ch);
-        curl_close($ch);
     }
 
     /**
