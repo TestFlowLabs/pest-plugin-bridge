@@ -164,6 +164,22 @@
   margin: 0;
 }
 
+/* Ensure code blocks are visible on initial load (SSR hydration fix) */
+.feature-code div[class*='language-'] pre,
+.feature-code div[class*='language-'] code {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* Shiki theme CSS variable fallbacks for initial page load */
+.shiki span[style*='--shiki-light'] {
+  color: var(--shiki-light);
+}
+
+.dark .shiki span[style*='--shiki-dark'] {
+  color: var(--shiki-dark);
+}
+
 /* Add spacing between consecutive code blocks */
 .feature-code div[class*='language-'] + div[class*='language-'] {
   margin-top: 12px;
