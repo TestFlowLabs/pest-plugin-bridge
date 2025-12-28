@@ -254,6 +254,105 @@ describe('FrontendDefinition', function (): void {
         });
     });
 
+    describe('reuseExistingServer', function (): void {
+        test('defaults to null (auto-detect)', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+
+            expect($definition->getReuseExistingServer())->toBeNull();
+            expect($definition->hasReuseExistingServerConfig())->toBeFalse();
+        });
+
+        test('can be set to null for auto-detection', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->reuseExistingServer(null);
+
+            expect($definition->getReuseExistingServer())->toBeNull();
+        });
+
+        test('can be set to true', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->reuseExistingServer(true);
+
+            expect($definition->getReuseExistingServer())->toBeTrue();
+            expect($definition->hasReuseExistingServerConfig())->toBeTrue();
+            expect($definition->shouldReuseExistingServer())->toBeTrue();
+        });
+
+        test('can be set to false', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->reuseExistingServer(false);
+
+            expect($definition->getReuseExistingServer())->toBeFalse();
+            expect($definition->hasReuseExistingServerConfig())->toBeTrue();
+            expect($definition->shouldReuseExistingServer())->toBeFalse();
+        });
+
+        test('returns self for fluent chaining', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $result     = $definition->reuseExistingServer();
+
+            expect($result)->toBe($definition);
+        });
+
+        test('can be combined with other fluent methods', function (): void {
+            $definition = (new FrontendDefinition('http://localhost:5173', 'frontend'))
+                ->serve('npm run dev', cwd: '../frontend')
+                ->readyWhen('VITE.*ready')
+                ->reuseExistingServer();
+
+            expect($definition->getServeCommand())->toBe('npm run dev');
+            expect($definition->getReadyPattern())->toBe('VITE.*ready');
+            expect($definition->getReuseExistingServer())->toBeNull();
+        });
+
+        test('shouldReuseExistingServer uses Environment when null', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+
+            // Store original CI value
+            $originalCI = getenv('CI');
+
+            // When not in CI (local), should return true
+            putenv('CI');
+            expect($definition->shouldReuseExistingServer())->toBeTrue();
+
+            // When in CI, should return false
+            putenv('CI=true');
+            expect($definition->shouldReuseExistingServer())->toBeFalse();
+
+            // Restore
+            if ($originalCI !== false) {
+                putenv("CI={$originalCI}");
+            } else {
+                putenv('CI');
+            }
+        });
+
+        test('explicit setting overrides environment detection', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+
+            // Store original CI value
+            $originalCI = getenv('CI');
+
+            // Set CI environment
+            putenv('CI=true');
+
+            // Explicit true overrides CI detection
+            $definition->reuseExistingServer(true);
+            expect($definition->shouldReuseExistingServer())->toBeTrue();
+
+            // Explicit false also works
+            $definition->reuseExistingServer(false);
+            expect($definition->shouldReuseExistingServer())->toBeFalse();
+
+            // Restore
+            if ($originalCI !== false) {
+                putenv("CI={$originalCI}");
+            } else {
+                putenv('CI');
+            }
+        });
+    });
+
     describe('method overwriting', function (): void {
         test('serve() overwrites previous serve command', function (): void {
             $definition = new FrontendDefinition('http://localhost:3000');
@@ -286,6 +385,14 @@ describe('FrontendDefinition', function (): void {
             $definition->warmup(5000);
 
             expect($definition->getWarmupDelayMs())->toBe(5000);
+        });
+
+        test('reuseExistingServer() overwrites previous setting', function (): void {
+            $definition = new FrontendDefinition('http://localhost:3000');
+            $definition->reuseExistingServer(true);
+            $definition->reuseExistingServer(false);
+
+            expect($definition->getReuseExistingServer())->toBeFalse();
         });
     });
 });

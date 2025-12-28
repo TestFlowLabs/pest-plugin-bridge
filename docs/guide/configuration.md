@@ -52,6 +52,7 @@ pest()->extends(TestCase::class)->in('Browser');
 | `->warmup(int $milliseconds)` | Extra delay after server reports ready (for large frontends) |
 | `->env(array $vars)` | Custom environment variables with path suffixes |
 | `->child(string $path, string $name)` | Register a child frontend at a sub-path (same server) |
+| `->reuseExistingServer(?bool $reuse = null)` | Behavior when port is already in use (see below) |
 
 ::: tip readyWhen() is Optional
 The default pattern (`ready|localhost|started|listening|compiled|http://|https://`) covers most frontend dev servers. Only use `readyWhen()` if your server has a unique output format.
@@ -153,6 +154,61 @@ test('reports page shows data', function () {
         ->assertVisible('[data-testid="reports-table"]');
 });
 ```
+
+### Port Conflict Handling
+
+When starting a server, the plugin checks if the port is already in use. The behavior depends on the `reuseExistingServer()` setting:
+
+```php
+Bridge::add('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->reuseExistingServer();  // Enable port reuse handling
+```
+
+#### Auto-Detection (Default)
+
+When called without arguments, `reuseExistingServer()` uses auto-detection based on the environment:
+
+| Environment | Behavior | Reason |
+|-------------|----------|--------|
+| **Local Development** | Reuse existing server | Faster iteration, don't kill developer's running server |
+| **CI (GitHub Actions, etc.)** | Throw `PortInUseException` | Clean slate expected, fail fast if something's wrong |
+
+```php
+// Auto-detect: true locally, false in CI
+->reuseExistingServer()
+```
+
+#### Explicit Control
+
+You can override the auto-detection:
+
+```php
+// Always reuse existing server if port is in use
+->reuseExistingServer(true)
+
+// Always throw exception if port is in use (CI-like behavior)
+->reuseExistingServer(false)
+```
+
+#### Why This Matters
+
+**Problem:** You specify `http://localhost:5173` but the port is already in use:
+
+```
+Bridge expects:     http://localhost:5173
+Vite auto-changes:  http://localhost:5174  ← Vite finds next available port
+Test navigates to:  http://localhost:5173  → Wrong application or error!
+```
+
+**Solution:** The plugin detects this before starting and either reuses the existing server (local) or fails fast with a helpful error (CI).
+
+::: tip For Vite Users
+Add `--strictPort` to make Vite fail immediately if the port is in use, giving a clearer error:
+```php
+->serve('npm run dev -- --strictPort', cwd: '../frontend')
+```
+:::
 
 ## URL Validation
 

@@ -9,6 +9,7 @@ use Pest\Browser\ServerManager;
 use Symfony\Component\Process\Process;
 use TestFlowLabs\PestPluginBridge\Http\CurlHttpClient;
 use TestFlowLabs\PestPluginBridge\Http\HttpClientInterface;
+use TestFlowLabs\PestPluginBridge\Exceptions\PortInUseException;
 
 /**
  * Manages the lifecycle of a frontend development server.
@@ -20,6 +21,12 @@ final class FrontendServer
 {
     private ?Process $process = null;
 
+    /**
+     * Whether we're reusing an existing server (port was in use).
+     * When true, stop() should not try to stop anything.
+     */
+    private bool $reusingExisting = false;
+
     public function __construct(
         private readonly FrontendDefinition $definition,
         private readonly HttpClientInterface $httpClient = new CurlHttpClient(),
@@ -28,7 +35,13 @@ final class FrontendServer
     /**
      * Start the frontend server if not already running.
      *
+     * Checks if the port is in use before starting:
+     * - If in use and reuseExistingServer is enabled: Skip starting, use existing
+     * - If in use and reuseExistingServer is disabled: Throw PortInUseException
+     * - If port is free: Start the server normally
+     *
      * @throws RuntimeException If the server fails to start
+     * @throws PortInUseException If port is in use and reuse is not enabled
      */
     public function start(): void
     {
@@ -39,6 +52,20 @@ final class FrontendServer
         $command = $this->definition->getServeCommand();
         if ($command === null) {
             return;
+        }
+
+        // Check if port is already in use
+        $port = $this->extractPort($this->definition->url);
+        if ($this->isPortInUse($port)) {
+            if ($this->definition->shouldReuseExistingServer()) {
+                // Reuse existing server - don't start a new one
+                $this->reusingExisting = true;
+
+                return;
+            }
+
+            // Port is in use and we can't reuse - throw exception
+            throw new PortInUseException($port, $this->definition->url);
         }
 
         // Inject API URL environment variables so frontend calls the test server
@@ -87,9 +114,19 @@ final class FrontendServer
 
     /**
      * Stop the frontend server if running.
+     *
+     * If we're reusing an existing server (not one we started),
+     * we don't stop it - someone else owns that process.
      */
     public function stop(): void
     {
+        // Don't stop a server we didn't start
+        if ($this->reusingExisting) {
+            $this->reusingExisting = false;
+
+            return;
+        }
+
         if ($this->process instanceof Process && $this->isRunning()) {
             $this->process->stop(
                 timeout: 0.1,
@@ -105,8 +142,21 @@ final class FrontendServer
      */
     public function isRunning(): bool
     {
+        // If we're reusing an existing server, consider it "running"
+        if ($this->reusingExisting) {
+            return true;
+        }
+
         return $this->process instanceof Process
             && $this->process->isRunning();
+    }
+
+    /**
+     * Check if we're reusing an existing server.
+     */
+    public function isReusingExisting(): bool
+    {
+        return $this->reusingExisting;
     }
 
     /**
@@ -223,5 +273,44 @@ final class FrontendServer
         // Use rewrite to get the proper URL with host and port
         // @phpstan-ignore method.internalInterface
         return rtrim($httpServer->rewrite('/'), '/');
+    }
+
+    /**
+     * Check if a port is currently in use.
+     *
+     * Attempts to open a socket connection to localhost on the given port.
+     * If the connection succeeds, the port is in use.
+     */
+    private function isPortInUse(int $port): bool
+    {
+        $socket = @fsockopen('localhost', $port, $errno, $errstr, 1);
+
+        if ($socket !== false) {
+            fclose($socket);
+
+            return true; // Port is in use
+        }
+
+        return false; // Port is available
+    }
+
+    /**
+     * Extract the port number from a URL.
+     *
+     * Returns the explicit port from the URL, or the default port
+     * based on the scheme (443 for https, 80 for http).
+     */
+    private function extractPort(string $url): int
+    {
+        $parsed = parse_url($url);
+
+        if ($parsed !== false && isset($parsed['port'])) {
+            return $parsed['port'];
+        }
+
+        // No explicit port - use default based on scheme
+        $scheme = $parsed['scheme'] ?? 'http';
+
+        return $scheme === 'https' ? 443 : 80;
     }
 }
