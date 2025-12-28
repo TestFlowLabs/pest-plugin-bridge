@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use TestFlowLabs\PestPluginBridge\FrontendDefinition;
 use TestFlowLabs\PestPluginBridge\FrontendManager;
+use TestFlowLabs\PestPluginBridge\FrontendDefinition;
 
 beforeEach(function (): void {
     FrontendManager::reset();

@@ -17,7 +17,7 @@ use TestFlowLabs\PestPluginBridge\Bridge;
 function startFixtureServer(int $port = 8765): int
 {
     $fixturesPath = __DIR__.'/../fixtures';
-    $command = sprintf(
+    $command      = sprintf(
         'php -S localhost:%d -t %s > /dev/null 2>&1 & echo $!',
         $port,
         escapeshellarg($fixturesPath)
@@ -71,7 +71,7 @@ function waitForServer(string $url, int $timeoutSeconds = 5): bool
 
 // Server configuration
 $serverPort = 8765;
-$serverPid = 0;
+$serverPid  = 0;
 
 beforeAll(function () use (&$serverPid, $serverPort): void {
     $serverPid = startFixtureServer($serverPort);
@@ -82,7 +82,7 @@ beforeAll(function () use (&$serverPid, $serverPort): void {
 
     $serverUrl = "http://localhost:{$serverPort}/index.html";
 
-    if (! waitForServer($serverUrl)) {
+    if (!waitForServer($serverUrl)) {
         stopFixtureServer($serverPid);
         throw new RuntimeException('Fixture server did not start in time');
     }

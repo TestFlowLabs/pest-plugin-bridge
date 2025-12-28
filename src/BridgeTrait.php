@@ -25,6 +25,7 @@ trait BridgeTrait
      *
      * @param  string  $path  The path to visit (e.g., '/dashboard', '/login')
      * @param  string|null  $frontend  Named frontend or null for default
+     *
      * @return mixed The browser page object from pest-plugin-browser
      */
     public function bridge(string $path = '/', ?string $frontend = null): mixed

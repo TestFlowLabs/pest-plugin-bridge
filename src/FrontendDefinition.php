@@ -12,11 +12,9 @@ namespace TestFlowLabs\PestPluginBridge;
  */
 final class FrontendDefinition
 {
-    private ?string $serveCommand = null;
-
+    private ?string $serveCommand     = null;
     private ?string $workingDirectory = null;
-
-    private string $readyPattern = 'ready|localhost|started|listening';
+    private string $readyPattern      = 'ready|localhost|started|listening';
 
     public function __construct(
         public readonly string $url,
@@ -31,7 +29,7 @@ final class FrontendDefinition
      */
     public function serve(string $command, ?string $cwd = null): self
     {
-        $this->serveCommand = $command;
+        $this->serveCommand     = $command;
         $this->workingDirectory = $cwd;
 
         return $this;

@@ -74,7 +74,7 @@ final class Bridge
             return self::$defaultUrl;
         }
 
-        if (! isset(self::$frontends[$name])) {
+        if (!isset(self::$frontends[$name])) {
             throw new InvalidArgumentException(
                 "Frontend '{$name}' not configured. Call Bridge::frontend('{$name}', \$url) in tests/Pest.php"
             );
@@ -118,7 +118,7 @@ final class Bridge
     public static function reset(): void
     {
         self::$defaultUrl = null;
-        self::$frontends = [];
+        self::$frontends  = [];
         FrontendManager::reset();
     }
 
@@ -129,7 +129,7 @@ final class Bridge
      */
     private static function validateUrl(string $url): void
     {
-        if ($url === '' || ! filter_var($url, FILTER_VALIDATE_URL)) {
+        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
             throw new InvalidArgumentException("Invalid URL: {$url}");
         }
     }

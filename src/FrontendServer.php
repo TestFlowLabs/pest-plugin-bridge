@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace TestFlowLabs\PestPluginBridge;
 
-use Pest\Browser\ServerManager;
 use RuntimeException;
+use Pest\Browser\ServerManager;
 use Symfony\Component\Process\Process;
 
 /**
@@ -48,7 +48,7 @@ final class FrontendServer
         $this->process->start();
 
         $pattern = $this->definition->getReadyPattern();
-        $output = '';
+        $output  = '';
 
         // Wait for server to be ready
         $ready = $this->process->waitUntil(
@@ -59,13 +59,13 @@ final class FrontendServer
             }
         );
 
-        if (! $ready && ! $this->isRunning()) {
+        if (!$ready && !$this->isRunning()) {
             throw new RuntimeException(
                 "Frontend server failed to start: {$command}\nOutput: {$output}"
             );
         }
 
-        if (! $this->isRunning()) {
+        if (!$this->isRunning()) {
             throw new RuntimeException(
                 "Frontend server exited unexpectedly: {$command}\nOutput: {$output}"
             );
@@ -107,24 +107,24 @@ final class FrontendServer
 
         $apiVariables = [
             // Generic
-            'API_URL' => $apiUrl,
+            'API_URL'      => $apiUrl,
             'API_BASE_URL' => $apiUrl,
-            'BACKEND_URL' => $apiUrl,
+            'BACKEND_URL'  => $apiUrl,
 
             // Vite
-            'VITE_API_URL' => $apiUrl,
+            'VITE_API_URL'      => $apiUrl,
             'VITE_API_BASE_URL' => $apiUrl,
 
             // Nuxt 3
             'NUXT_PUBLIC_API_BASE' => $apiUrl,
-            'NUXT_PUBLIC_API_URL' => $apiUrl,
+            'NUXT_PUBLIC_API_URL'  => $apiUrl,
 
             // Next.js
-            'NEXT_PUBLIC_API_URL' => $apiUrl,
+            'NEXT_PUBLIC_API_URL'      => $apiUrl,
             'NEXT_PUBLIC_API_BASE_URL' => $apiUrl,
 
             // Create React App
-            'REACT_APP_API_URL' => $apiUrl,
+            'REACT_APP_API_URL'      => $apiUrl,
             'REACT_APP_API_BASE_URL' => $apiUrl,
         ];
 

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use Tests\TestCase;
 use TestFlowLabs\PestPluginBridge\Bridge;
 use TestFlowLabs\PestPluginBridge\BridgeTrait;
-use Tests\TestCase;
 
 /*
 |--------------------------------------------------------------------------

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-/**
+/*
  * Feature tests for the Bridge functionality.
  *
  * These tests verify URL construction behavior that would be used

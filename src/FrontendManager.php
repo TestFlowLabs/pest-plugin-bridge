@@ -27,7 +27,7 @@ final class FrontendManager
      */
     public static function instance(): self
     {
-        return self::$instance ??= new self;
+        return self::$instance ??= new self();
     }
 
     /**
@@ -38,7 +38,7 @@ final class FrontendManager
      */
     public function register(FrontendDefinition $definition): void
     {
-        $key = $definition->name ?? 'default';
+        $key                     = $definition->name ?? 'default';
         $this->definitions[$key] = $definition;
     }
 
@@ -79,8 +79,8 @@ final class FrontendManager
         }
 
         $this->definitions = [];
-        $this->servers = [];
-        $this->started = false;
+        $this->servers     = [];
+        $this->started     = false;
     }
 
     /**

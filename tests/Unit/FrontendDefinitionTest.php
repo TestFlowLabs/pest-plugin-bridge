@@ -47,7 +47,7 @@ describe('FrontendDefinition', function (): void {
 
         test('returns self for fluent chaining', function (): void {
             $definition = new FrontendDefinition('http://localhost:3000');
-            $result = $definition->serve('npm run dev');
+            $result     = $definition->serve('npm run dev');
 
             expect($result)->toBe($definition);
         });
@@ -69,7 +69,7 @@ describe('FrontendDefinition', function (): void {
 
         test('returns self for fluent chaining', function (): void {
             $definition = new FrontendDefinition('http://localhost:3000');
-            $result = $definition->readyWhen('custom-pattern');
+            $result     = $definition->readyWhen('custom-pattern');
 
             expect($result)->toBe($definition);
         });
