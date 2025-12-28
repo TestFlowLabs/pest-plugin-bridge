@@ -390,3 +390,46 @@ Add Slack notification on completion:
 - Use `required: true` when the value must be explicitly chosen
 - Use `type: choice` for predefined options (prevents typos)
 - Use `type: string` for free-form input (branch names)
+
+## Troubleshooting
+
+### Checkout Fails: "The process '/usr/bin/git' failed"
+
+**Symptom**: Workflow fails at checkout step with git exit code 1
+
+**Common causes**:
+
+1. **Wrong branch name**: Some repos use `main`, others use `master`
+   ```yaml
+   # Check your repo's default branch and use it as default
+   inputs:
+     backend_branch:
+       default: 'master'  # or 'main' depending on your repo
+   ```
+
+2. **Private repository**: Need a PAT (Personal Access Token)
+   ```yaml
+   - uses: actions/checkout@v4
+     with:
+       repository: your-org/private-repo
+       token: ${{ secrets.REPO_ACCESS_TOKEN }}
+   ```
+
+### Composer Install Fails: "Package requires PHP >= 8.4"
+
+**Symptom**: `composer install` fails with PHP version requirement errors
+
+**Cause**: Some packages (especially Symfony 8.x) require PHP 8.4+
+
+**Solution**: Update the PHP version in your workflow:
+
+```yaml
+- name: Setup PHP
+  uses: shivammathur/setup-php@v2
+  with:
+    php-version: '8.4'  # Match your composer.lock requirements
+```
+
+::: tip Check Your Requirements
+Run `composer show --locked | grep symfony` locally to see which Symfony version your project uses. Symfony 8.x requires PHP 8.4+.
+:::
