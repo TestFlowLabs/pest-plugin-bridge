@@ -71,8 +71,6 @@ trait BrowserMocking
      */
     public function bridgeWithMocks(string $path, ?string $frontend = null, array $options = []): AwaitableWebpage
     {
-        die("DEBUG: bridgeWithMocks called with path: $path");
-
         // DEBUG: Check if mocks are registered
         $hasMocks = self::hasBrowserMocks();
         $mockCount = count(self::$browserMocks);
