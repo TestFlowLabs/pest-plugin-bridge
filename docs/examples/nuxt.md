@@ -461,8 +461,7 @@ use TestFlowLabs\PestPluginBridge\Bridge;
 use Tests\TestCase;
 
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: '../frontend')
-    ->readyWhen('Local:.*localhost:3000');
+    ->serve('npm run dev', cwd: '../frontend');
 
 pest()->extends(TestCase::class)->in('Browser');
 ```

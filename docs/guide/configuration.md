@@ -30,8 +30,7 @@ use Tests\TestCase;
 
 // Configure frontend with automatic server management
 Bridge::setDefault('http://localhost:3000')
-    ->serve('npm run dev', cwd: '../frontend')
-    ->readyWhen('Local:.*http');  // Custom pattern for Nuxt/Vite
+    ->serve('npm run dev', cwd: '../frontend');
 
 pest()->extends(TestCase::class)->in('Browser');
 ```
@@ -49,7 +48,11 @@ pest()->extends(TestCase::class)->in('Browser');
 | Method | Description |
 |--------|-------------|
 | `->serve(string $command, ?string $cwd = null)` | Command to start the server |
-| `->readyWhen(string $pattern)` | Regex pattern to detect server ready (default: `ready\|localhost\|started\|listening`) |
+| `->readyWhen(string $pattern)` | Regex pattern to detect server ready (optional, default covers Nuxt, Vite, Next.js, CRA, Angular) |
+
+::: tip readyWhen() is Optional
+The default pattern (`ready|localhost|started|listening|compiled|http://|https://`) covers most frontend dev servers. Only use `readyWhen()` if your server has a unique output format.
+:::
 
 ### Multiple Frontends with Auto-Start
 
