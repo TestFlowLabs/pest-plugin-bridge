@@ -7,28 +7,18 @@ namespace TestFlowLabs\PestPluginBridge;
 /**
  * Manages the lifecycle of all frontend servers.
  *
- * This singleton class coordinates starting and stopping
+ * This static class coordinates starting and stopping
  * all registered frontend servers during test execution.
  */
 final class FrontendManager
 {
-    private static ?FrontendManager $instance = null;
-
     /** @var array<string, FrontendDefinition> */
-    private array $definitions = [];
+    private static array $definitions = [];
 
     /** @var array<string, FrontendServer> */
-    private array $servers = [];
+    private static array $servers = [];
 
-    private bool $started = false;
-
-    /**
-     * Get the singleton instance.
-     */
-    public static function instance(): self
-    {
-        return self::$instance ??= new self();
-    }
+    private static bool $started = false;
 
     /**
      * Register a frontend definition.
@@ -36,10 +26,10 @@ final class FrontendManager
      * The definition is stored and servers are created lazily
      * when startAll() is called, allowing fluent configuration.
      */
-    public function register(FrontendDefinition $definition): void
+    public static function register(FrontendDefinition $definition): void
     {
         $key                     = $definition->name ?? 'default';
-        $this->definitions[$key] = $definition;
+        self::$definitions[$key] = $definition;
     }
 
     /**
@@ -48,54 +38,54 @@ final class FrontendManager
      * Creates FrontendServer instances for definitions with serve commands
      * and starts them. This is called lazily on first bridge() call.
      */
-    public function startAll(): void
+    public static function startAll(): void
     {
-        if ($this->started) {
+        if (self::$started) {
             return;
         }
 
         // Create servers from definitions that have serve commands
-        foreach ($this->definitions as $key => $definition) {
+        foreach (self::$definitions as $key => $definition) {
             if ($definition->hasServeCommand()) {
-                $this->servers[$key] = new FrontendServer($definition);
+                self::$servers[$key] = new FrontendServer($definition);
             }
         }
 
         // Start all servers
-        foreach ($this->servers as $server) {
+        foreach (self::$servers as $server) {
             $server->start();
         }
 
-        $this->started = true;
+        self::$started = true;
     }
 
     /**
      * Stop all running frontend servers.
      */
-    public function stopAll(): void
+    public static function stopAll(): void
     {
-        foreach ($this->servers as $server) {
+        foreach (self::$servers as $server) {
             $server->stop();
         }
 
-        $this->definitions = [];
-        $this->servers     = [];
-        $this->started     = false;
+        self::$definitions = [];
+        self::$servers     = [];
+        self::$started     = false;
     }
 
     /**
      * Check if any servers are registered.
      */
-    public function hasServers(): bool
+    public static function hasServers(): bool
     {
         // Check definitions for serve commands since servers are created lazily
-        foreach ($this->definitions as $definition) {
+        foreach (self::$definitions as $definition) {
             if ($definition->hasServeCommand()) {
                 return true;
             }
         }
 
-        return $this->servers !== [];
+        return self::$servers !== [];
     }
 
     /**
@@ -103,7 +93,6 @@ final class FrontendManager
      */
     public static function reset(): void
     {
-        self::$instance?->stopAll();
-        self::$instance = null;
+        self::stopAll();
     }
 }

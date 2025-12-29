@@ -52,7 +52,7 @@ final class Bridge
             $definition             = new FrontendDefinition($url, $name);
         }
 
-        FrontendManager::instance()->register($definition);
+        FrontendManager::register($definition);
 
         return $definition;
     }

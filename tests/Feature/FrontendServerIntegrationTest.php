@@ -40,7 +40,7 @@ describe('FrontendServer Integration', function (): void {
             ->readyWhen('Development Server');
 
         // Start the server via FrontendManager
-        FrontendManager::instance()->startAll();
+        FrontendManager::startAll();
 
         // Wait for server to be ready (with polling instead of fixed sleep)
         $url = "http://localhost:{$port}/index.html";

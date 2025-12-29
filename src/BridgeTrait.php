@@ -42,7 +42,7 @@ trait BridgeTrait
     public function bridge(string $path = '/', ?string $frontend = null, array $options = []): mixed
     {
         // Ensure frontend servers are started (lazy initialization)
-        FrontendManager::instance()->startAll();
+        FrontendManager::startAll();
 
         $fullUrl = Bridge::buildUrl($path, $frontend);
 
