@@ -9,6 +9,9 @@ namespace TestFlowLabs\PestPluginBridge\Http;
  */
 final class CurlHttpClient implements HttpClientInterface
 {
+    /**
+     * {@inheritDoc}
+     */
     public function check(string $url, int $timeout = 1): int
     {
         $ch = curl_init($url);
@@ -29,6 +32,9 @@ final class CurlHttpClient implements HttpClientInterface
         return curl_getinfo($ch, CURLINFO_HTTP_CODE);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     public function get(string $url, int $timeout = 10): string|false
     {
         $ch = curl_init($url);

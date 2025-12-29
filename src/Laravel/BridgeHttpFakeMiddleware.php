@@ -39,7 +39,7 @@ use Symfony\Component\HttpFoundation\Response;
  * ];
  * ```
  */
-class BridgeHttpFakeMiddleware
+final class BridgeHttpFakeMiddleware
 {
     /**
      * Handle an incoming request.
