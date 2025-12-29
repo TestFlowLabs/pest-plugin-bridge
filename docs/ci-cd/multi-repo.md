@@ -276,31 +276,31 @@ jobs:
 
 ### Pest Configuration
 
-Configure multiple Bridge instances for different frontends:
+Configure multiple frontends:
 
 ```php
 // backend/tests/Pest.php
 use TestFlowLabs\PestPluginBridge\Bridge;
 
-// Web app on port 3000
-Bridge::make('web', 'http://localhost:3000')
+// Web app on port 3000 (default frontend)
+Bridge::add('http://localhost:3000')
     ->serve('npm run dev', cwd: '../frontend-web');
 
-// Admin dashboard on port 3001
-Bridge::make('admin', 'http://localhost:3001')
+// Admin dashboard on port 3001 (named frontend)
+Bridge::add('http://localhost:3001', 'admin')
     ->serve('npm run dev -- --port 3001', cwd: '../frontend-admin');
 ```
 
-Use named instances in tests:
+Use in tests:
 
 ```php
 test('user can access web dashboard', function () {
-    $this->bridge('/dashboard', 'web')
+    $this->bridge('/dashboard')  // Uses default frontend
         ->assertSee('Welcome');
 });
 
 test('admin can access admin panel', function () {
-    $this->bridge('/admin', 'admin')
+    $this->bridge('/', 'admin')  // Uses 'admin' frontend
         ->assertSee('Admin Panel');
 });
 ```
