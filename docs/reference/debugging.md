@@ -221,4 +221,4 @@ test('dashboard has no errors', function () {
 
 ## Visual Regression Testing
 
-For comprehensive visual regression testing including baseline management, CI/CD integration, and handling dynamic content, see the dedicated [Visual Regression Testing](/guide/visual-regression) guide.
+For comprehensive visual regression testing including baseline management, CI/CD integration, and handling dynamic content, see the dedicated [Visual Regression Testing](/extend/visual-regression) guide.

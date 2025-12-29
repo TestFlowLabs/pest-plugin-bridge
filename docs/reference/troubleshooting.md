@@ -150,7 +150,7 @@ $this->bridge('/users')->assertSee($email);
 ```
 
 ::: tip Comprehensive Database Guide
-For detailed explanation of database traits, transaction isolation, and recommended configurations, see [Connection Architecture: Database Configuration](/guide/connection#database-configuration).
+For detailed explanation of database traits, transaction isolation, and recommended configurations, see [How It Works: Database Configuration](/learn/how-it-works#database-configuration).
 :::
 
 ## Form & Input Issues
@@ -171,7 +171,7 @@ For detailed explanation of database traits, transaction isolation, and recommen
 ```
 
 ::: tip Framework-Specific Guide
-For detailed explanation of `fill()` vs `typeSlowly()` behavior with Vue, React, and other reactive frameworks, see [Best Practices: Vue/Nuxt Framework-Specific](/guide/best-practices#vue-nuxt-framework-specific-best-practices).
+For detailed explanation of `fill()` vs `typeSlowly()` behavior with Vue, React, and other reactive frameworks, see [Best Practices: Vue/Nuxt Framework-Specific](/build/best-practices#vue-nuxt-framework-specific-best-practices).
 :::
 
 ### First Characters Lost When Typing

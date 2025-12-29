@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Get Started
-      link: /getting-started/quick-start
+      link: /learn/quick-start
     - theme: alt
       text: View on GitHub
       link: https://github.com/TestFlowLabs/pest-plugin-bridge
@@ -28,7 +28,7 @@ hero:
 
 pest-plugin-bridge solves both: `bridge()` for test→frontend, automatic API URL injection for frontend→API.
 
-[See the full picture →](/getting-started/introduction)
+[See the full picture →](/learn/introduction)
 
 </div>
 <div class="feature-code">
@@ -52,7 +52,7 @@ $this->bridge('/login')->assertSee('Welcome');
 
 All with familiar Pest syntax and assertions.
 
-[Get started →](/getting-started/quick-start)
+[Get started →](/learn/quick-start)
 
 </div>
 <div class="feature-code">
@@ -83,7 +83,7 @@ test('user can login', function () {
 
 API URL automatically injected for Vite, Nuxt, Next.js, and React. Child frontends share the same server process.
 
-[Configuration →](/guide/configuration)
+[Configuration →](/build/configuration)
 
 </div>
 <div class="feature-code">
@@ -222,7 +222,7 @@ test('analytics shows charts', function () {
 
 Works with Vue, Nuxt, React, Next.js, Angular, Svelte.
 
-[Best practices →](/guide/best-practices)
+[Best practices →](/build/best-practices)
 
 </div>
 <div class="feature-code">
@@ -256,7 +256,7 @@ test('form validation works', function () {
 
 `Bridge::fake()` intercepts Laravel backend HTTP calls. `Bridge::mockBrowser()` intercepts frontend JavaScript fetch/XHR.
 
-[HTTP mocking guide →](/guide/http-faking)
+[HTTP mocking guide →](/extend/http-faking)
 
 </div>
 <div class="feature-code">

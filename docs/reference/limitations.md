@@ -2,44 +2,6 @@
 
 Understanding what Pest Bridge Plugin can and cannot do helps you choose the right tool and avoid surprises.
 
-## Architectural Limitations
-
-### Single Browser Engine (Chromium)
-
-The plugin uses [pest-plugin-browser](https://github.com/pestphp/pest-plugin-browser) which currently only supports Chromium via Playwright.
-
-**What this means**:
-- No Firefox or Safari/WebKit testing
-- Cross-browser compatibility must be tested separately
-- Some browser-specific bugs may not be caught
-
-**Workaround**: Use Playwright directly for cross-browser tests, or run separate browser-specific test suites.
-
-### No Network Request Mocking
-
-Unlike Cypress or Playwright's native API, the plugin doesn't provide request interception.
-
-**What this means**:
-- Can't mock API responses
-- Can't test error states without backend changes
-- Can't simulate slow networks
-
-**Workaround**:
-- Create test endpoints in Laravel for error states
-- Use Laravel's HTTP fake in unit tests
-- Consider Playwright's `page.route()` for advanced mocking (requires direct Playwright access)
-
-### No Visual Regression Testing
-
-The plugin doesn't include screenshot comparison or visual diff tools.
-
-**What this means**:
-- Can't detect unintended visual changes
-- No pixel-perfect comparison
-- CSS regressions may go unnoticed
-
-**Workaround**: Integrate with visual testing tools like Percy, Chromatic, or BackstopJS.
-
 ## Database Limitations
 
 ### Transaction Isolation
@@ -107,7 +69,15 @@ Testing content inside iframes requires additional handling.
 **What this means**:
 - Can't directly interact with iframe content using standard selectors
 - Payment forms (Stripe, PayPal) often use iframes
-- Requires frame-specific Playwright methods
+- Use `withinIframe()` method for iframe interactions
+
+**Example**:
+```php
+$this->bridge('/checkout')
+    ->withinIframe('[data-testid="payment-frame"]', function ($page) {
+        $page->fill('[data-testid="card-number"]', '4242424242424242');
+    });
+```
 
 ## Server Management Limitations
 
@@ -138,39 +108,42 @@ Default server startup uses pattern matching with no explicit timeout.
 - No built-in timeout configuration
 - Must ensure your `readyWhen()` pattern is reliable
 
-## CI/CD Limitations
+## CI/CD Considerations
 
-### GitHub Actions Specific
+### Documentation Examples
 
-Documentation and examples focus on GitHub Actions.
+Our CI/CD documentation uses GitHub Actions for examples, but **the plugin works with any CI/CD platform**:
 
-**What this means**:
-- GitLab CI, CircleCI, Jenkins need adaptation
-- Concepts transfer but syntax differs
-- Community contributions welcome for other CI systems
+- GitHub Actions
+- GitLab CI/CD
+- CircleCI
+- Jenkins
+- Bitbucket Pipelines
+- Azure DevOps
+- Any platform that can run PHP and Node.js
 
-### No Built-in Artifact Management
+The core concepts (checkout repos, install dependencies, run Playwright, execute tests) apply universally. Only the YAML/config syntax differs between platforms.
 
-Screenshot/video capture relies on pest-plugin-browser configuration.
+### Artifact Upload
 
-**What this means**:
-- Must configure artifact upload separately
-- No automatic failure screenshots by default
-- Need to set up `upload-artifact` action manually
+Screenshot and video capture is handled by pest-plugin-browser. Uploading these artifacts to your CI/CD platform requires platform-specific configuration:
 
-## Comparison with Alternatives
+```yaml
+# GitHub Actions
+- uses: actions/upload-artifact@v4
+  with:
+    name: screenshots
+    path: tests/Browser/Screenshots
 
-| Feature | Pest Bridge Plugin | Laravel Dusk | Cypress | Playwright |
-|---------|-------------------|--------------|---------|------------|
-| External frontend | ✅ Native | ❌ No | ✅ Yes | ✅ Yes |
-| PHP test code | ✅ Yes | ✅ Yes | ❌ JS only | ❌ JS/TS |
-| Laravel integration | ✅ Excellent | ✅ Excellent | ⚠️ Limited | ⚠️ Limited |
-| Database factories | ✅ Yes | ✅ Yes | ❌ No | ❌ No |
-| Cross-browser | ❌ Chromium only | ❌ Chrome only | ✅ All | ✅ All |
-| Network mocking | ❌ No | ❌ No | ✅ Yes | ✅ Yes |
-| Visual testing | ❌ No | ❌ No | ⚠️ Plugin | ⚠️ Plugin |
-| Time-travel debug | ❌ No | ❌ No | ✅ Yes | ⚠️ Trace |
-| Learning curve | ✅ Low (if know Pest) | ✅ Low | ⚠️ Medium | ⚠️ Medium |
+# GitLab CI
+artifacts:
+  paths:
+    - tests/Browser/Screenshots
+
+# CircleCI
+- store_artifacts:
+    path: tests/Browser/Screenshots
+```
 
 ## Known Issues
 
@@ -206,8 +179,24 @@ If tests crash hard, frontend servers may be left running.
 
 **Workaround**: Kill orphaned processes manually:
 ```bash
+# Unix/macOS
 pkill -f "npm run dev"
+
+# Windows
+taskkill /IM node.exe /F
 ```
+
+## What This Plugin Is NOT
+
+To set proper expectations, here's what the plugin doesn't aim to replace:
+
+| If you need... | Consider... |
+|----------------|-------------|
+| Time-travel debugging | Cypress |
+| Full Playwright API access | Playwright directly |
+| Component testing | Vitest, Jest, Vue Test Utils |
+| API-only testing | Laravel's HTTP tests |
+| Load/performance testing | k6, Artillery, Locust |
 
 ## Requesting Features
 

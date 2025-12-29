@@ -349,7 +349,7 @@ pest()->extends(TestCase::class)
 ```
 
 ::: tip Database Configuration Guide
-For comprehensive coverage of database traits, transaction isolation, and recommended configurations, see [Connection Architecture: Database Configuration](/guide/connection#database-configuration).
+For comprehensive coverage of database traits, transaction isolation, and recommended configurations, see [How It Works: Database Configuration](/learn/how-it-works#database-configuration).
 :::
 
 ### Verify Results Via UI Instead of Database

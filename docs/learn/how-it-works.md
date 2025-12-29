@@ -1,4 +1,4 @@
-# Connection Architecture
+# How It Works
 
 Understanding how the plugin connects your Laravel backend with external frontends is key to successful testing.
 

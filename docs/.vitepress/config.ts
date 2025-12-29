@@ -107,7 +107,7 @@ export default defineConfig({
     siteTitle: 'Pest Bridge Plugin',
 
     nav: [
-      { text: 'Docs', link: '/getting-started/introduction' },
+      { text: 'Docs', link: '/learn/introduction' },
       {
         text: 'v1.0.0',
         items: [
@@ -119,28 +119,31 @@ export default defineConfig({
     sidebar: {
       '/': [
         {
-          text: 'Getting Started',
+          text: 'Learn',
           items: [
-            { text: 'Introduction', link: '/getting-started/introduction' },
-            { text: 'Installation', link: '/getting-started/installation' },
-            { text: 'Quick Start', link: '/getting-started/quick-start' }
+            { text: 'Introduction', link: '/learn/introduction' },
+            { text: 'Comparison', link: '/learn/comparison' },
+            { text: 'Installation', link: '/learn/installation' },
+            { text: 'Quick Start', link: '/learn/quick-start' },
+            { text: 'How It Works', link: '/learn/how-it-works' }
           ]
         },
         {
-          text: 'Guide',
+          text: 'Build',
           items: [
-            { text: 'Configuration', link: '/guide/configuration' },
-            { text: 'Connection Architecture', link: '/guide/connection' },
-            { text: 'Writing Tests', link: '/guide/writing-tests' },
-            { text: 'Assertions', link: '/guide/assertions' },
-            { text: 'Browser Options', link: '/guide/browser-options' },
-            { text: 'Debugging', link: '/guide/debugging' },
-            { text: 'Visual Regression', link: '/guide/visual-regression' },
-            { text: 'HTTP Faking', link: '/guide/http-faking' },
-            { text: 'Best Practices', link: '/guide/best-practices' },
-            { text: 'Performance', link: '/guide/performance' },
-            { text: 'Troubleshooting', link: '/guide/troubleshooting' },
-            { text: 'Limitations', link: '/guide/limitations' }
+            { text: 'Configuration', link: '/build/configuration' },
+            { text: 'Writing Tests', link: '/build/writing-tests' },
+            { text: 'Assertions', link: '/build/assertions' },
+            { text: 'Best Practices', link: '/build/best-practices' }
+          ]
+        },
+        {
+          text: 'Extend',
+          items: [
+            { text: 'HTTP Faking', link: '/extend/http-faking' },
+            { text: 'Visual Regression', link: '/extend/visual-regression' },
+            { text: 'Browser Options', link: '/extend/browser-options' },
+            { text: 'Performance', link: '/extend/performance' }
           ]
         },
         {
@@ -155,6 +158,15 @@ export default defineConfig({
             { text: 'Caching', link: '/ci-cd/caching' },
             { text: 'Debugging', link: '/ci-cd/debugging' },
             { text: 'Advanced', link: '/ci-cd/advanced' }
+          ]
+        },
+        {
+          text: 'Reference',
+          items: [
+            { text: 'API Reference', link: '/reference/api' },
+            { text: 'Debugging', link: '/reference/debugging' },
+            { text: 'Troubleshooting', link: '/reference/troubleshooting' },
+            { text: 'Limitations', link: '/reference/limitations' }
           ]
         }
       ]

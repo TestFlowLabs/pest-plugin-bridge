@@ -151,10 +151,3 @@ test('homepage loads', function () {
 ```
 
 The plugin simply prepends your configured base URL to paths, then delegates to Pest's standard browser testing methods.
-
-## Requirements
-
-- PHP 8.3 or higher
-- Pest 4.0 or higher
-- Pest Plugin Browser 4.0 or higher
-- Node.js (for Playwright)

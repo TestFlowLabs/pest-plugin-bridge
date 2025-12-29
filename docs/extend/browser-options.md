@@ -75,7 +75,27 @@ Run tests in different browsers:
 Set default browser in `tests/Pest.php`:
 
 ```php
+// Use Firefox
 pest()->browser()->inFirefox();
+
+// Use Safari/WebKit
+pest()->browser()->inSafari();
+```
+
+### Cross-Browser Testing
+
+Run the same tests across all browsers in CI:
+
+```yaml
+# .github/workflows/browser-tests.yml
+jobs:
+  browser-tests:
+    strategy:
+      matrix:
+        browser: [chrome, firefox, safari]
+    steps:
+      - name: Run browser tests
+        run: ./vendor/bin/pest tests/Browser --browser ${{ matrix.browser }}
 ```
 
 ## Display Mode
