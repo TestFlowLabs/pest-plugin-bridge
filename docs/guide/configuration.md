@@ -52,7 +52,7 @@ pest()->extends(TestCase::class)->in('Browser');
 | `->warmup(int $milliseconds)` | Extra delay after server reports ready (for large frontends) |
 | `->env(array $vars)` | Custom environment variables with path suffixes |
 | `->child(string $path, string $name)` | Register a child frontend at a sub-path (same server) |
-| `->reuseExistingServer(?bool $reuse = null)` | Behavior when port is already in use (see below) |
+| `->trustExistingServer()` | Trust any server on the port (escape hatch for manual starts) |
 
 ::: tip readyWhen() is Optional
 The default pattern (`ready|localhost|started|listening|compiled|http://|https://`) covers most frontend dev servers. Only use `readyWhen()` if your server has a unique output format.
@@ -155,53 +155,51 @@ test('reports page shows data', function () {
 });
 ```
 
-### Port Conflict Handling
+### Automatic Server Identification
 
-When starting a server, the plugin checks if the port is already in use. The behavior depends on the `reuseExistingServer()` setting:
+When Bridge starts a frontend server, it writes a **marker file** to the system temp directory. This marker contains:
+- Port number
+- Working directory (CWD)
+- Process ID (PID)
+- Command used to start
+
+When a port is already in use, Bridge checks this marker to determine what's running:
+
+| Marker Status | Meaning | Action |
+|---------------|---------|--------|
+| **Match** | Same CWD, PID alive | Safe to reuse (our server) |
+| **Stale** | Same CWD, PID dead | Server died, restart it |
+| **Mismatch** | Different CWD | Different app! Throw error |
+| **None** | No marker file | Unknown process, throw error |
+
+This prevents accidentally connecting to the wrong application when you have multiple frontend projects.
+
+#### Why This Matters
+
+**Problem:** You specify `http://localhost:5173` but a different project's server is running:
+
+```
+Your config:        http://localhost:5173 → ../customer-portal
+What's running:     http://localhost:5173 → ../admin-panel (different app!)
+Without marker:     Tests connect to admin panel → WRONG!
+With marker:        Bridge detects mismatch → Clear error message
+```
+
+**Solution:** Bridge automatically identifies servers it started, preventing cross-project confusion.
+
+#### Manual Server Starts (Escape Hatch)
+
+If you start the frontend manually (not via Bridge's `serve()`), there's no marker file. Bridge will throw an error by default. Use `trustExistingServer()` to skip verification:
 
 ```php
 Bridge::add('http://localhost:5173')
     ->serve('npm run dev', cwd: '../frontend')
-    ->reuseExistingServer();  // Enable port reuse handling
+    ->trustExistingServer();  // Skip marker verification
 ```
 
-#### Auto-Detection (Default)
-
-When called without arguments, `reuseExistingServer()` uses auto-detection based on the environment:
-
-| Environment | Behavior | Reason |
-|-------------|----------|--------|
-| **Local Development** | Reuse existing server | Faster iteration, don't kill developer's running server |
-| **CI (GitHub Actions, etc.)** | Throw `PortInUseException` | Clean slate expected, fail fast if something's wrong |
-
-```php
-// Auto-detect: true locally, false in CI
-->reuseExistingServer()
-```
-
-#### Explicit Control
-
-You can override the auto-detection:
-
-```php
-// Always reuse existing server if port is in use
-->reuseExistingServer(true)
-
-// Always throw exception if port is in use (CI-like behavior)
-->reuseExistingServer(false)
-```
-
-#### Why This Matters
-
-**Problem:** You specify `http://localhost:5173` but the port is already in use:
-
-```
-Bridge expects:     http://localhost:5173
-Vite auto-changes:  http://localhost:5174  ← Vite finds next available port
-Test navigates to:  http://localhost:5173  → Wrong application or error!
-```
-
-**Solution:** The plugin detects this before starting and either reuses the existing server (local) or fails fast with a helpful error (CI).
+::: warning Use With Caution
+Only use `trustExistingServer()` when you're certain the correct application is running. It disables the safety check that prevents connecting to the wrong app.
+:::
 
 ::: tip For Vite Users
 Add `--strictPort` to make Vite fail immediately if the port is in use, giving a clearer error:
