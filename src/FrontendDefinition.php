@@ -36,13 +36,13 @@ final class FrontendDefinition
     private array $customEnvVars = [];
 
     /**
-     * Whether to reuse an existing server if port is in use.
+     * Whether to trust an unknown server on the port.
      *
-     * - null: Auto-detect (true locally, false in CI)
-     * - true: Always reuse existing server
-     * - false: Always throw exception if port is in use
+     * By default, Bridge only reuses servers it can verify via marker files.
+     * Enable this to trust any server running on the port (escape hatch for
+     * CI environments or when running frontend manually without Bridge).
      */
-    private ?bool $reuseExistingServer = null;
+    private bool $trustExistingServer = false;
 
     /**
      * Default pattern covers most frontend dev servers:
@@ -174,7 +174,7 @@ final class FrontendDefinition
      *
      * Example:
      * ```php
-     * Bridge::setDefault('http://localhost:5173')
+     * Bridge::add('http://localhost:5173')
      *     ->serve('npm run dev', cwd: '../frontend')
      *     ->env([
      *         'VITE_ADMIN_API'    => '/v1/admin/',
@@ -228,62 +228,35 @@ final class FrontendDefinition
     }
 
     /**
-     * Configure behavior when the port is already in use.
+     * Trust any server running on the port (escape hatch).
      *
-     * This follows the Playwright pattern for handling port conflicts:
-     * - Local development: Reuse existing server (faster iteration)
-     * - CI environment: Fail fast (clean slate expected)
+     * By default, Bridge uses marker files to identify servers it started.
+     * This ensures you don't accidentally connect to the wrong application.
+     *
+     * Use this method when:
+     * - Running frontend manually (not via Bridge's serve())
+     * - CI environment where frontend is started separately
+     * - You're certain the correct app is running
      *
      * Example:
      * ```php
      * Bridge::add('http://localhost:5173')
      *     ->serve('npm run dev', cwd: '../frontend')
-     *     ->reuseExistingServer();  // Auto-detect based on environment
-     *
-     * // Or explicitly:
-     *     ->reuseExistingServer(true)   // Always reuse
-     *     ->reuseExistingServer(false)  // Always fail if port in use
+     *     ->trustExistingServer();  // Skip marker verification
      * ```
-     *
-     * @param  bool|null  $reuse  null=auto-detect, true=always reuse, false=always fail
      */
-    public function reuseExistingServer(?bool $reuse = null): self
+    public function trustExistingServer(): self
     {
-        $this->reuseExistingServer = $reuse;
+        $this->trustExistingServer = true;
 
         return $this;
     }
 
     /**
-     * Determine if an existing server should be reused when port is in use.
-     *
-     * When set to null (default/auto), uses Environment::isLocal() to decide:
-     * - Local development: true (reuse for faster iteration)
-     * - CI environment: false (fail fast, expect clean slate)
+     * Check if unknown servers should be trusted.
      */
-    public function shouldReuseExistingServer(): bool
+    public function shouldTrustExistingServer(): bool
     {
-        if ($this->reuseExistingServer !== null) {
-            return $this->reuseExistingServer;
-        }
-
-        // Auto-detect: reuse locally, fail in CI
-        return Environment::isLocal();
-    }
-
-    /**
-     * Check if reuseExistingServer has been explicitly configured.
-     */
-    public function hasReuseExistingServerConfig(): bool
-    {
-        return $this->reuseExistingServer !== null;
-    }
-
-    /**
-     * Get the raw reuseExistingServer setting (for testing).
-     */
-    public function getReuseExistingServer(): ?bool
-    {
-        return $this->reuseExistingServer;
+        return $this->trustExistingServer;
     }
 }

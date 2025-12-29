@@ -16,13 +16,22 @@ use TestFlowLabs\PestPluginBridge\Exceptions\PortInUseException;
  *
  * Uses Symfony Process to start and stop frontend servers,
  * automatically injecting the Laravel API URL as environment variables.
+ *
+ * Server Identification:
+ * When Bridge starts a server, it writes a marker file to the system temp directory.
+ * This marker contains port, CWD, command, PID, and timestamp. When the port is
+ * already in use, Bridge checks the marker to determine if it's safe to reuse:
+ * - Match: Same CWD, PID alive → safe to reuse (our server)
+ * - Stale: Same CWD, PID dead → clean up and restart
+ * - Mismatch: Different CWD → different app, throw exception
+ * - None: No marker → unknown process, throw exception
  */
 final class FrontendServer
 {
     private ?Process $process = null;
 
     /**
-     * Whether we're reusing an existing server (port was in use).
+     * Whether we're reusing an existing server (identified via marker).
      * When true, stop() should not try to stop anything.
      */
     private bool $reusingExisting = false;
@@ -35,13 +44,14 @@ final class FrontendServer
     /**
      * Start the frontend server if not already running.
      *
-     * Checks if the port is in use before starting:
-     * - If in use and reuseExistingServer is enabled: Skip starting, use existing
-     * - If in use and reuseExistingServer is disabled: Throw PortInUseException
-     * - If port is free: Start the server normally
+     * Uses marker files for safe server identification:
+     * - Match: Our server is running, reuse it
+     * - Stale: Our server died, clean up marker and restart
+     * - Mismatch: Different app running, throw exception
+     * - None: Unknown process OR trustExistingServer enabled → handle accordingly
      *
      * @throws RuntimeException If the server fails to start
-     * @throws PortInUseException If port is in use and reuse is not enabled
+     * @throws PortInUseException If port is in use by an unknown or different application
      */
     public function start(): void
     {
@@ -54,18 +64,41 @@ final class FrontendServer
             return;
         }
 
-        // Check if port is already in use
         $port = $this->extractPort($this->definition->url);
+        $cwd  = $this->definition->getWorkingDirectory() ?? getcwd() ?: '.';
+
+        // Check marker to determine what's running on this port
+        $markerStatus = ServerMarker::verify($port, $cwd);
+
+        if ($markerStatus === 'match') {
+            // Our server is already running - safe to reuse
+            $this->reusingExisting = true;
+
+            return;
+        }
+
+        if ($markerStatus === 'mismatch') {
+            // Different application running on this port
+            $existingCwd = ServerMarker::getMarkerCwd($port);
+            throw PortInUseException::differentApplication($port, $this->definition->url, $existingCwd ?? 'unknown');
+        }
+
+        // 'stale' or 'none' - check if port is actually in use
         if ($this->isPortInUse($port)) {
-            if ($this->definition->shouldReuseExistingServer()) {
-                // Reuse existing server - don't start a new one
+            if ($markerStatus === 'stale') {
+                // Our server died but something else grabbed the port
+                throw PortInUseException::staleMarker($port, $this->definition->url);
+            }
+
+            // No marker - unknown process
+            if ($this->definition->shouldTrustExistingServer()) {
+                // User explicitly said to trust it
                 $this->reusingExisting = true;
 
                 return;
             }
 
-            // Port is in use and we can't reuse - throw exception
-            throw new PortInUseException($port, $this->definition->url);
+            throw PortInUseException::unknownProcess($port, $this->definition->url);
         }
 
         // Inject API URL environment variables so frontend calls the test server
@@ -110,6 +143,14 @@ final class FrontendServer
                 "Frontend server exited unexpectedly: {$command}\nOutput: {$output}"
             );
         }
+
+        // Write marker file so other test runs can identify this server
+        if ($this->process instanceof Process) {
+            $pid = $this->process->getPid();
+            if ($pid !== null) {
+                ServerMarker::write($port, $cwd, $command, $pid);
+            }
+        }
     }
 
     /**
@@ -117,6 +158,7 @@ final class FrontendServer
      *
      * If we're reusing an existing server (not one we started),
      * we don't stop it - someone else owns that process.
+     * Deletes the marker file when stopping a server we started.
      */
     public function stop(): void
     {
@@ -128,6 +170,10 @@ final class FrontendServer
         }
 
         if ($this->process instanceof Process && $this->isRunning()) {
+            // Delete marker file before stopping
+            $port = $this->extractPort($this->definition->url);
+            ServerMarker::delete($port);
+
             $this->process->stop(
                 timeout: 0.1,
                 signal: PHP_OS_FAMILY === 'Windows' ? null : SIGTERM,
