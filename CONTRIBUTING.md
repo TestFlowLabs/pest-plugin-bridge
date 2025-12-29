@@ -99,9 +99,13 @@ src/
 ├── Autoload.php           # Pest plugin registration
 ├── Bridge.php             # Configuration registry (static API)
 ├── BridgeTrait.php        # Test trait with bridge() method
+├── BrowserMockStore.php   # In-memory store for browser mocks
 ├── FrontendDefinition.php # Builder for frontend configuration
-├── FrontendManager.php    # Singleton managing all servers
-└── FrontendServer.php     # Individual server process management
+├── FrontendManager.php    # Static class managing all servers
+├── FrontendServer.php     # Individual server process management
+├── ServerMarker.php       # Marker-based server identification
+└── Laravel/
+    └── BridgeHttpFakeMiddleware.php  # Cross-process HTTP faking
 ```
 
 ### Adding New Features

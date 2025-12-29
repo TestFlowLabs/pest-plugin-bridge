@@ -33,9 +33,13 @@ src/
 ├── Autoload.php           # Plugin bootstrap and shutdown handler
 ├── Bridge.php             # Main configuration class (static API)
 ├── BridgeTrait.php        # Provides bridge() method for tests
+├── BrowserMockStore.php   # In-memory store for browser-level mocks
 ├── FrontendDefinition.php # Fluent builder for server config
-├── FrontendManager.php    # Manages server lifecycles
-└── FrontendServer.php     # Individual server process management
+├── FrontendManager.php    # Manages server lifecycles (static class)
+├── FrontendServer.php     # Individual server process management
+├── ServerMarker.php       # Marker-based server identification
+└── Laravel/
+    └── BridgeHttpFakeMiddleware.php  # Cross-process HTTP faking
 
 tests/
 ├── Browser/               # Browser test examples
@@ -127,6 +131,68 @@ Bridge::add('http://localhost:5173')
 $this->bridge('/', options: ['timeout' => 60000]);  // 60s timeout
 ```
 
+### HTTP Mocking
+
+Two types of HTTP mocking for different scenarios:
+
+#### Backend HTTP Faking (Laravel → External APIs)
+
+Mock HTTP calls made by your Laravel backend to external services:
+
+```php
+use TestFlowLabs\PestPluginBridge\Bridge;
+
+// In your test
+Bridge::fake([
+    'https://api.stripe.com/*' => [
+        'status' => 200,
+        'body' => ['id' => 'ch_123', 'status' => 'succeeded'],
+    ],
+    'https://api.sendgrid.com/*' => [
+        'status' => 202,
+        'body' => ['message' => 'queued'],
+    ],
+]);
+
+$this->bridge('/checkout')
+    ->click('[data-testid="pay"]')
+    ->assertSee('Payment successful');
+```
+
+**Note:** Requires `BridgeHttpFakeMiddleware` registered in Laravel.
+
+#### Browser HTTP Mocking (Frontend → External APIs)
+
+Mock fetch/XHR calls made directly by JavaScript in the browser:
+
+```php
+Bridge::mockBrowser([
+    'https://api.weather.com/*' => [
+        'status' => 200,
+        'body' => ['temp' => 25, 'city' => 'Istanbul'],
+    ],
+]);
+
+$this->bridge('/weather')
+    ->assertSee('25°C');
+```
+
+### Server Trust and Marker System
+
+By default, Bridge uses marker files to verify server ownership before reuse:
+
+```php
+// Trust an existing server without marker verification
+Bridge::add('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->trustExistingServer();  // Skip marker check
+```
+
+**When to use `trustExistingServer()`:**
+- You start the frontend manually before tests
+- Working in a shared development environment
+- CI environment where servers are pre-started
+
 ### BridgeTrait
 
 Provides the `bridge()` method for tests:
@@ -211,6 +277,55 @@ test('admin sees users', function () {
 });
 ```
 
+### Child Frontends
+
+Share a server process between related frontends:
+
+```php
+// In tests/Pest.php
+Bridge::add('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->child('/admin', 'admin')   // http://localhost:3000/admin
+    ->child('/docs', 'docs');    // http://localhost:3000/docs
+
+// In tests
+$this->bridge('/');               // Main app
+$this->bridge('/', 'admin');      // Admin section
+$this->bridge('/guide', 'docs');  // Docs section
+```
+
+### Environment Variables
+
+Automatic injection for common frameworks:
+
+```php
+Bridge::add('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend');
+
+// Automatically sets (based on detected framework):
+// - VITE_API_URL / NUXT_PUBLIC_API_URL / NEXT_PUBLIC_API_URL
+// - VITE_API_BASE_URL / NUXT_PUBLIC_API_BASE_URL / etc.
+```
+
+Custom environment variables with path suffixes:
+
+```php
+Bridge::add('http://localhost:3000')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->env([
+        'CUSTOM_VAR' => 'value',
+        'API_KEY'    => 'test-key',
+    ]);
+```
+
+Vite `.env` file support (bypasses `.env.local` precedence):
+
+```php
+Bridge::add('http://localhost:5173')
+    ->serve('npm run dev', cwd: '../frontend')
+    ->envFile('.env.testing');  // Creates temp file, uses --mode flag
+```
+
 ## Available Browser Methods
 
 ### Navigation & Waiting
@@ -261,12 +376,15 @@ composer test:types     # Type coverage
 
 | File | Purpose |
 |------|---------|
-| `src/Bridge.php` | Static API for configuration |
-| `src/BridgeTrait.php` | Provides `bridge()` method |
-| `src/FrontendDefinition.php` | Fluent builder (`->serve()`, `->readyWhen()`, `->warmup()`) |
-| `src/FrontendManager.php` | Manages all server lifecycles |
-| `src/FrontendServer.php` | Individual server process |
+| `src/Bridge.php` | Static API for configuration, HTTP faking |
+| `src/BridgeTrait.php` | Provides `bridge()` method with mock injection |
+| `src/BrowserMockStore.php` | In-memory store for browser-level mocks |
+| `src/FrontendDefinition.php` | Fluent builder (`->serve()`, `->readyWhen()`, `->warmup()`, `->env()`, `->child()`) |
+| `src/FrontendManager.php` | Static class managing all server lifecycles |
+| `src/FrontendServer.php` | Individual server process management |
+| `src/ServerMarker.php` | Marker-based server identification and verification |
 | `src/Autoload.php` | Plugin bootstrap, shutdown handler |
+| `src/Laravel/BridgeHttpFakeMiddleware.php` | Cross-process HTTP faking middleware |
 | `tests/Pest.php` | Test configuration |
 | `phpstan.neon` | PHPStan config (level max) |
 | `rector.php` | Rector config |
