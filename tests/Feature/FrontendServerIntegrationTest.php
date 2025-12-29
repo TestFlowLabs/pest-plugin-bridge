@@ -3,6 +3,10 @@
 declare(strict_types=1);
 
 use TestFlowLabs\PestPluginBridge\Bridge;
+
+use function Tests\Helpers\getAvailablePort;
+use function Tests\Helpers\waitForServerReady;
+
 use TestFlowLabs\PestPluginBridge\FrontendManager;
 
 /*
@@ -25,7 +29,7 @@ afterEach(function (): void {
 describe('FrontendServer Integration', function (): void {
     test('can start and stop a simple server', function (): void {
         $fixturesPath = __DIR__.'/../fixtures';
-        $port         = 18765;
+        $port         = getAvailablePort();
 
         // Configure Bridge with serve command
         Bridge::add("http://localhost:{$port}")
@@ -38,11 +42,12 @@ describe('FrontendServer Integration', function (): void {
         // Start the server via FrontendManager
         FrontendManager::instance()->startAll();
 
-        // Give server time to fully start
-        usleep(500000);
+        // Wait for server to be ready (with polling instead of fixed sleep)
+        $url = "http://localhost:{$port}/index.html";
+        expect(waitForServerReady($url, timeoutMs: 5000))->toBeTrue();
 
         // Verify server is accessible
-        $ch = curl_init("http://localhost:{$port}/index.html");
+        $ch = curl_init($url);
         curl_setopt_array($ch, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 5,
@@ -51,15 +56,13 @@ describe('FrontendServer Integration', function (): void {
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
         expect($httpCode)->toBe(200);
         expect($response)->toContain('Welcome to Test App');
 
         // Stop the server
         FrontendManager::reset();
-
-        // Give time for cleanup
-        usleep(200000);
     })->skip(
         !function_exists('curl_init'),
         'curl extension required'

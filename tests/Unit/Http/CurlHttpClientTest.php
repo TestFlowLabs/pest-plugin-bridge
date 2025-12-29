@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use function Tests\Helpers\withTestServer;
+
 use TestFlowLabs\PestPluginBridge\Http\CurlHttpClient;
 use TestFlowLabs\PestPluginBridge\Http\HttpClientInterface;
 
@@ -29,23 +31,12 @@ describe('CurlHttpClient', function (): void {
                 $this->markTestSkipped('Fixtures directory not found');
             }
 
-            $port = 18766;
-
-            // Start a simple PHP server
-            $process = new Symfony\Component\Process\Process(
-                ['php', '-S', "localhost:{$port}", '-t', $fixturesPath]
-            );
-            $process->start();
-            usleep(300000); // Wait for server to start
-
-            try {
+            withTestServer($fixturesPath, function (int $port): void {
                 $client = new CurlHttpClient();
                 $result = $client->check("http://localhost:{$port}/index.html", timeout: 2);
 
                 expect($result)->toBe(200);
-            } finally {
-                $process->stop();
-            }
+            });
         })->skip(fn (): bool => !extension_loaded('curl'), 'cURL extension required');
     });
 
@@ -66,24 +57,13 @@ describe('CurlHttpClient', function (): void {
                 $this->markTestSkipped('Fixtures directory not found');
             }
 
-            $port = 18767;
-
-            // Start a simple PHP server
-            $process = new Symfony\Component\Process\Process(
-                ['php', '-S', "localhost:{$port}", '-t', $fixturesPath]
-            );
-            $process->start();
-            usleep(300000); // Wait for server to start
-
-            try {
+            withTestServer($fixturesPath, function (int $port): void {
                 $client = new CurlHttpClient();
                 $result = $client->get("http://localhost:{$port}/index.html", timeout: 2);
 
                 expect($result)->toBeString();
                 expect($result)->toContain('Welcome to Test App');
-            } finally {
-                $process->stop();
-            }
+            });
         })->skip(fn (): bool => !extension_loaded('curl'), 'cURL extension required');
     });
 });

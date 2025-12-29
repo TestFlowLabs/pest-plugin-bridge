@@ -13,3 +13,15 @@ declare(strict_types=1);
 */
 
 // uses(TestCase::class)->in('Feature');
+
+/*
+|--------------------------------------------------------------------------
+| Test Helpers
+|--------------------------------------------------------------------------
+|
+| Load test helper functions for dynamic port allocation, server readiness
+| polling, and other test utilities.
+|
+*/
+
+require_once __DIR__.'/Helpers/TestHelpers.php';
